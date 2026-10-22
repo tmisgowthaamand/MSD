@@ -36,3 +36,6 @@ backend/data/members_mongodb_data.json
 backend/data/card_settings.json
 vite.config.ts.timestamp-*
 
+
+# Release archives
+*.tar.gz
