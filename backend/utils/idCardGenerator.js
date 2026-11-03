@@ -75,7 +75,7 @@ const generateCadreIdCards = async (member, photoBuffer = null) => {
   const memberBlood = xmlEscape(member.bloodGroup || "O+");
   const memberPin = xmlEscape(member.pincode || "600001");
   const memberAddress = xmlEscape(member.address || "Main Seva Secretariat");
-  const memberEmergency = xmlEscape(member.emergencyNumber || member.mobile || "+91 9994625690");
+  const memberEmergency = xmlEscape(member.emergencyNumber || member.mobile || "+91 9994625690, +91 9514576540");
   const memberAssembly = xmlEscape(member.assembly || member.assemblyAssm || "—");
   const memberZone = xmlEscape(member.zone || member.zoneRegion || "—");
 
@@ -287,7 +287,7 @@ const generateCadreIdCards = async (member, photoBuffer = null) => {
       }
       <line x1="10" y1="42" x2="210" y2="42" stroke="#475569" stroke-width="1.5"/>
       <text x="110" y="62" font-family="Arial, sans-serif" font-size="12" font-weight="900" fill="#0f172a" text-anchor="middle">AUTHORIZED SIGNATORY</text>
-      <text x="110" y="78" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#64748b" text-anchor="middle">Central Cadre Secretariat · New Delhi</text>
+      <text x="110" y="78" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle">Head Office Secretariat • Chennai</text>
     </g>
 
     <!-- Bottom Tricolor Strip -->

@@ -273,7 +273,7 @@ const TermsConditions: React.FC = () => {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Phone size={13} className="text-[#FF6200]" />
-                  <span className="font-mono text-ink">+91 9994625690</span>
+                  <span className="font-mono text-ink">+91 9994625690, +91 9514576540</span>
                 </span>
               </div>
             </div>

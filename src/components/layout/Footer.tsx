@@ -92,13 +92,13 @@ const Footer = () => {
           {/* Col 4: Contact Information */}
           <div>
             <h3 className="font-serif text-lg text-ink mb-4 tracking-tight font-semibold">
-              Official Secretariat
+              Official Head Office
             </h3>
             <ul className="space-y-3 text-xs">
               <li className="flex items-start gap-2">
                 <MapPin size={14} className="text-coral flex-shrink-0 mt-0.5" />
                 <span className="leading-relaxed">
-                  Maha Seva Dal Secretariat, Head Office, India
+                  No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.
                 </span>
               </li>
               <li className="flex items-center gap-2">
@@ -109,9 +109,15 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone size={14} className="text-coral flex-shrink-0" />
-                <a href="tel:+919994625690" className="hover:text-coral transition-colors font-mono">
-                  +91 9994625690
-                </a>
+                <div className="font-mono flex items-center gap-1 flex-wrap">
+                  <a href="tel:+919994625690" className="hover:text-coral transition-colors">
+                    +91 9994625690
+                  </a>
+                  <span className="text-muted-editorial">,</span>
+                  <a href="tel:+919514576540" className="hover:text-coral transition-colors">
+                    +91 9514576540
+                  </a>
+                </div>
               </li>
             </ul>
           </div>

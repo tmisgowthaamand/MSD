@@ -6,9 +6,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileText,
-  MapPin,
   RotateCw,
-  Building2,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -571,7 +569,7 @@ const resolveBrandLogo = async (): Promise<{
   let img = await safeLoadImage("/logo.png", 2000);
 
   const brandLogoUrl =
-    "https://res.cloudinary.com/wq9znxvs/image/upload/v1793441798/msd/brand/logo.png";
+    "/logo.png";
   if (!img) {
     let proxyLogoUrl = brandLogoUrl;
     if (proxyLogoUrl.startsWith("http") && !proxyLogoUrl.includes("/api/members/proxy-photo")) {
@@ -877,7 +875,7 @@ export const generateIdCardCanvas = async (
       ctx.textAlign = "left";
 
       // Full Name
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 13px sans-serif";
       ctx.fillText("CADRE FULL NAME", 300, 305);
       ctx.fillStyle = "#1b1b1b";
@@ -885,7 +883,7 @@ export const generateIdCardCanvas = async (
       ctx.fillText(member.fullName, 300, 340);
 
       // Registration ID
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 13px sans-serif";
       ctx.fillText("REGISTRATION ID", 300, 385);
       ctx.fillStyle = "#faede3";
@@ -898,7 +896,7 @@ export const generateIdCardCanvas = async (
       ctx.fillText(member.registrationId, 315, 423);
 
       // Assigned Wing (Badge with Peach Background, subtle border, Black text font matching Screenshot 1)
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 13px sans-serif";
       ctx.fillText("ASSIGNED WING", 300, 475);
 
@@ -928,14 +926,14 @@ export const generateIdCardCanvas = async (
       ctx.strokeRect(50, 538, 700, 195);
 
       // Row 1: State & District Unit
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("STATE UNIT", 75, 564);
       ctx.fillStyle = "#1b1b1b";
       ctx.font = "bold 18px sans-serif";
       ctx.fillText(member.state, 75, 588);
 
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("DISTRICT UNIT", 420, 564);
       ctx.fillStyle = "#1b1b1b";
@@ -943,14 +941,14 @@ export const generateIdCardCanvas = async (
       ctx.fillText(member.district, 420, 588);
 
       // Row 2: Assembly Constituency & Zone / Region
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("ASSEMBLY CONSTITUENCY", 75, 622);
       ctx.fillStyle = "#1b1b1b";
       ctx.font = "bold 18px sans-serif";
       ctx.fillText(member.assembly || "—", 75, 646);
 
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("ZONE / REGION", 420, 622);
       ctx.fillStyle = "#1b1b1b";
@@ -958,14 +956,14 @@ export const generateIdCardCanvas = async (
       ctx.fillText(member.zone || "—", 420, 646);
 
       // Row 3: Contact Mobile & Blood Group
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("CONTACT MOBILE", 75, 680);
       ctx.fillStyle = "#1b1b1b";
       ctx.font = "bold 17px monospace";
       ctx.fillText(format10DigitMobile(member.mobile), 75, 704);
 
-      ctx.fillStyle = "#554e44";
+      ctx.fillStyle = "#38332c";
       ctx.font = "bold 12px sans-serif";
       ctx.fillText("BLOOD GROUP", 420, 680);
       const validBg = getValidBloodGroup(member.bloodGroup);
@@ -1335,22 +1333,21 @@ export const generateIdCardBackCanvas = async (
     ctx.strokeRect(35, 238, 730, 168);
 
     // Father's Name
-    ctx.fillStyle = "#554e44";
+    ctx.fillStyle = "#38332c";
     ctx.font = "bold 13px Arial, sans-serif";
     ctx.fillText("FATHER'S / HUSBAND'S NAME", 60, 268);
     ctx.fillStyle = "#1e1e1e";
     ctx.font = "bold 20px Georgia, serif";
     ctx.fillText(member.fatherName || "—", 60, 296);
 
-    // DOB & Age
-    ctx.fillStyle = "#554e44";
+    // DOB
+    ctx.fillStyle = "#38332c";
     ctx.font = "bold 13px Arial, sans-serif";
-    ctx.fillText("DATE OF BIRTH & AGE", 430, 268);
+    ctx.fillText("DATE OF BIRTH", 430, 268);
     ctx.fillStyle = "#1e1e1e";
     ctx.font = "bold 19px Courier, monospace";
-    const memberAge = member.age ?? calcMemberAge(member.dob);
     const formattedDob = formatDobDDMMYYYY(member.dob);
-    const dobStr = formattedDob ? `${formattedDob}${memberAge ? ` (${memberAge} Yrs)` : ""}` : "—";
+    const dobStr = formattedDob || "—";
     ctx.fillText(dobStr, 430, 296);
 
     // Divider line
@@ -1362,7 +1359,7 @@ export const generateIdCardBackCanvas = async (
     ctx.stroke();
 
     // Gender
-    ctx.fillStyle = "#554e44";
+    ctx.fillStyle = "#38332c";
     ctx.font = "bold 13px Arial, sans-serif";
     ctx.fillText("GENDER", 60, 350);
     ctx.fillStyle = "#1e1e1e";
@@ -1370,7 +1367,7 @@ export const generateIdCardBackCanvas = async (
     ctx.fillText(getDisplayGender(member.gender), 60, 378);
 
     // Emergency Contact / WhatsApp
-    ctx.fillStyle = "#554e44";
+    ctx.fillStyle = "#38332c";
     ctx.font = "bold 13px Arial, sans-serif";
     ctx.fillText("EMERGENCY / WHATSAPP", 430, 350);
     ctx.fillStyle = "#1e1e1e";
@@ -1380,57 +1377,53 @@ export const generateIdCardBackCanvas = async (
       : format10DigitMobile(member.whatsapp || member.mobile);
     ctx.fillText(emergencyCanvasText, 430, 378);
 
-    // 6. Section 2: Permanent Residential Address Box
+    // 6. Section 2: National Central Secretariat & Official Helpline Box
     ctx.fillStyle = "#faf6ee";
     ctx.fillRect(35, 418, 730, 185);
     ctx.strokeStyle = "#e6dbc8";
     ctx.lineWidth = 2;
     ctx.strokeRect(35, 418, 730, 185);
 
-    // Orange MapPin Symbol & Title
+    // Title & Foundation Year
     ctx.fillStyle = "#FF6200";
-    ctx.font = "bold 14px Arial, sans-serif";
-    ctx.fillText("📍 PERMANENT RESIDENTIAL ADDRESS", 60, 448);
+    ctx.font = "bold 15px Arial, sans-serif";
+    ctx.fillText("NATIONAL CENTRAL SECRETARIAT", 60, 448);
+    ctx.fillStyle = "#38332c";
+    ctx.font = "bold 12px Courier, monospace";
+    ctx.fillText("ESTD. 1947", 655, 448);
 
-    // Street Address
+    // Divider line
+    ctx.strokeStyle = "#ede3d3";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(60, 465);
+    ctx.lineTo(735, 465);
+    ctx.stroke();
+
+    // Official Helpline
+    ctx.fillStyle = "#38332c";
+    ctx.font = "bold 12px Arial, sans-serif";
+    ctx.fillText("OFFICIAL CADRE HELPLINE", 60, 488);
     ctx.fillStyle = "#1e1e1e";
-    ctx.font = "bold 19px Georgia, serif";
-    ctx.fillText(member.address || "—", 60, 484);
+    ctx.font = "bold 15px Courier, monospace";
+    ctx.fillText("+91 9994625690", 60, 510);
+    ctx.fillText("+91 9514576540", 60, 530);
 
-    // Taluk / Dist / State / PIN line
+    // Verification Portal
+    ctx.fillStyle = "#38332c";
     ctx.font = "bold 13px Arial, sans-serif";
-    let curX = 60;
-    ctx.fillStyle = "#554e44";
-    ctx.fillText("Taluk: ", curX, 520);
-    curX += ctx.measureText("Taluk: ").width;
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillText(`${member.taluk || "—"}   `, curX, 520);
-    curX += ctx.measureText(`${member.taluk || "—"}   `).width;
-
-    ctx.fillStyle = "#554e44";
-    ctx.fillText("Dist: ", curX, 520);
-    curX += ctx.measureText("Dist: ").width;
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillText(`${member.district || "—"}   `, curX, 520);
-    curX += ctx.measureText(`${member.district || "—"}   `).width;
-
-    ctx.fillStyle = "#554e44";
-    ctx.fillText("State: ", curX, 520);
-    curX += ctx.measureText("State: ").width;
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillText(`${member.state || "—"}   `, curX, 520);
-    curX += ctx.measureText(`${member.state || "—"}   `).width;
-
+    ctx.fillText("OFFICIAL VERIFICATION PORTAL", 430, 492);
     ctx.fillStyle = "#FF6200";
-    ctx.fillText(`PIN: ${member.pincode || "—"}`, curX, 520);
+    ctx.font = "bold 19px Courier, monospace";
+    ctx.fillText("mahasevadal.com", 430, 520);
 
-    // Email line
-    ctx.fillStyle = "#554e44";
-    ctx.font = "bold 13px Arial, sans-serif";
-    ctx.fillText("Email: ", 60, 560);
-    ctx.fillStyle = "#1e1e1e";
-    ctx.font = "14px Courier, monospace";
-    ctx.fillText(member.email || "—", 60 + ctx.measureText("Email: ").width, 560);
+    // Bottom Head Office Note
+    ctx.fillStyle = "#2d2720";
+    ctx.font = "bold 11px Arial, sans-serif";
+    ctx.fillText("Head Office: No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.", 60, 554);
+    ctx.fillStyle = "#554e42";
+    ctx.font = "11px Courier, monospace";
+    ctx.fillText("Email: mahasevadalorganization@gmail.com", 60, 576);
 
     // 7. Section 3: Cadre Directives & Terms (3 Official Bullets)
     ctx.fillStyle = "#ffffff";
@@ -1441,14 +1434,14 @@ export const generateIdCardBackCanvas = async (
 
     ctx.fillStyle = "#1e1e1e";
     ctx.font = "bold 16px Arial, sans-serif";
-    ctx.fillText("🛡️ CADRE DIRECTIVES & TERMS", 60, 652);
+    ctx.fillText("CADRE DIRECTIVES & TERMS", 60, 652);
 
     ctx.fillStyle = "#4a443c";
     ctx.font = "14.5px Arial, sans-serif";
     const bullets = [
       "• This card is non-transferable property of Maha Seva Dal (Estd. 1947).",
       "• Authorized for civic welfare, social upliftment & relief operations.",
-      "• If found, please return to Central Secretariat or nearest post box.",
+      "• If found, please return to Central Secretariat or call Helpline: 9994625690, 9514576540.",
     ];
     bullets.forEach((b, idx) => {
       ctx.fillText(b, 60, 706 + idx * 56);
@@ -2087,27 +2080,6 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
       }
 
       triggerDownload(dataUrl, filename);
-      fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile: member.mobile || member.whatsapp || "",
-          customerName: member.fullName,
-          memberType: "EXISTING_MEMBER",
-          channelSource: "web",
-          registrationStatus: "APPROVED",
-          registrationId: member.registrationId,
-          wing: member.wing,
-          state: member.state,
-          district: member.district,
-          stepLabel: `🪪 Downloaded Digital ID Card (${filename})`,
-          buttonClicked: `Download ${target.toUpperCase()} PNG`,
-          userMessage: `🪪 Downloaded Digital ID Card (${filename})`,
-          cardData: { ...member, action: "DOWNLOADED_PNG" },
-          cardViewed: true,
-          cardDownloaded: true,
-        }),
-      }).catch(() => {});
     } catch (err: any) {
       console.error("Download error:", err);
       alert("Download error: " + (err.message || "Failed to download card"));
@@ -2137,27 +2109,6 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
       }
 
       await generateIdCardPdf(member, qrDataUrl, cardSettings, frontUrl, backUrl);
-      fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile: member.mobile || member.whatsapp || "",
-          customerName: member.fullName,
-          memberType: "EXISTING_MEMBER",
-          channelSource: "web",
-          registrationStatus: "APPROVED",
-          registrationId: member.registrationId,
-          wing: member.wing,
-          state: member.state,
-          district: member.district,
-          stepLabel: `🪪 Downloaded Digital ID Card PDF (${member.registrationId}.pdf)`,
-          buttonClicked: "Download PDF (A4)",
-          userMessage: `🪪 Downloaded Digital ID Card PDF (${member.registrationId}.pdf)`,
-          cardData: { ...member, action: "DOWNLOADED_PDF" },
-          cardViewed: true,
-          cardDownloaded: true,
-        }),
-      }).catch(() => {});
     } catch (err: any) {
       console.error("PDF download error:", err);
       alert("PDF download failed: " + (err.message || "Unknown error"));
@@ -2209,7 +2160,7 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                     alt="MSD Logo"
                     crossOrigin="anonymous"
                     onError={(e) => {
-                      e.currentTarget.src = "https://res.cloudinary.com/wq9znxvs/image/upload/v1793441798/msd/brand/logo.png";
+                      e.currentTarget.src = "/logo.png";
                     }}
                     className="w-8 h-8 rounded-full object-contain shadow-xs flex-shrink-0"
                   />
@@ -2275,86 +2226,86 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                     </div>
                   </div>
 
-                  {/* Identity Details */}
-                  <div className="flex-1 min-w-0 space-y-1">
+                  {/* Identity Details - Clean, spacious typographic hierarchy */}
+                  <div className="flex-1 min-w-0 h-[94px] flex flex-col justify-between py-0.5 pl-1">
                     <div>
-                      <span className="text-[7px] text-[#554e44] uppercase font-bold tracking-wider block">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block mb-0.5">
                         Cadre Full Name
                       </span>
-                      <div className="font-serif font-black text-xs text-ink leading-tight truncate">
+                      <div className="font-sans font-black text-[13px] text-ink leading-tight tracking-normal truncate uppercase">
                         {member.fullName}
                       </div>
                     </div>
 
-                    <div>
-                      <span className="text-[7px] text-[#554e44] uppercase font-bold tracking-wider block">
+                    <div className="my-auto pt-1 pb-1.5">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block mb-1">
                         Registration ID
                       </span>
-                      <div className="font-mono text-[10.5px] font-bold tracking-wider text-[#D65000] bg-surface-soft px-2 py-0.5 rounded border border-[#e5dac8] inline-block shadow-2xs">
+                      <div className="font-mono text-[9.5px] font-bold tracking-wider text-[#D65000] bg-[#fff8f0] px-2.5 py-1 rounded-lg border border-[#fed7aa] inline-block shadow-2xs leading-none">
                         {member.registrationId}
                       </div>
                     </div>
 
-                    <div>
-                      <span className="text-[7px] text-[#554e44] uppercase font-bold tracking-wider block">
-                        Assigned Wing
+                    <div className="flex items-baseline gap-1.5" title={member.wing}>
+                      <span className="text-[6.5px] text-[#44403c] uppercase font-bold tracking-wider shrink-0">
+                        Wing:
                       </span>
-                      <div className="text-[8.5px] font-bold bg-[#fff7ed] text-ink px-1.5 py-0.5 rounded-md border border-[#fed7aa] inline-block truncate max-w-full shadow-2xs">
+                      <span className="text-[10px] font-bold text-ink truncate leading-tight">
                         {member.wing}
-                      </div>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Information Grid */}
+                {/* Information Grid with Balanced Two-Column Ledger */}
                 <div className="bg-[#faf6ee] rounded-lg p-2 border border-[#e6dbc8] space-y-1 text-[8.5px]">
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         State Unit
                       </span>
-                      <span className="font-bold text-ink truncate block">{member.state}</span>
+                      <span className="font-bold text-ink truncate block leading-tight">{member.state}</span>
                     </div>
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         District Unit
                       </span>
-                      <span className="font-bold text-ink truncate block">{member.district}</span>
+                      <span className="font-bold text-ink truncate block leading-tight">{member.district}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-[#ede3d3]">
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2 pt-1 border-t border-[#ede3d3]">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block truncate" title="Assembly Constituency">
                         Assembly Constituency
                       </span>
-                      <span className="font-bold text-ink truncate block">{member.assembly || "—"}</span>
+                      <span className="font-bold text-ink truncate block leading-tight">{member.assembly || "—"}</span>
                     </div>
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block truncate" title="Zone / Region">
                         Zone / Region
                       </span>
-                      <span className="font-bold text-ink truncate block">{member.zone || "—"}</span>
+                      <span className="font-bold text-ink truncate block leading-tight">{member.zone || "—"}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-[#ede3d3]">
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2 pt-1 border-t border-[#ede3d3]">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         Contact Mobile
                       </span>
-                      <span className="font-mono font-semibold text-ink block">{format10DigitMobile(member.mobile)}</span>
+                      <span className="font-mono font-bold text-ink block leading-tight">{format10DigitMobile(member.mobile)}</span>
                     </div>
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         Blood Group
                       </span>
                       {getValidBloodGroup(member.bloodGroup) ? (
-                        <span className="font-bold text-rose-700 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 inline-block min-w-[12px] text-center">
+                        <span className="font-extrabold text-red-800 bg-red-100/90 px-1.5 py-0.2 rounded border border-red-300 inline-block min-w-[14px] text-center shadow-2xs leading-tight">
                           {getValidBloodGroup(member.bloodGroup)}
                         </span>
                       ) : (
-                        <span className="font-mono font-semibold text-ink block">
+                        <span className="font-mono font-semibold text-ink block leading-tight">
                           —
                         </span>
                       )}
@@ -2491,7 +2442,7 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                       alt="MSD Logo"
                       crossOrigin="anonymous"
                       onError={(e) => {
-                        e.currentTarget.src = "https://res.cloudinary.com/wq9znxvs/image/upload/v1793441798/msd/brand/logo.png";
+                        e.currentTarget.src = "/logo.png";
                       }}
                       className="w-7 h-7 rounded-full object-contain shadow-xs flex-shrink-0"
                     />
@@ -2523,41 +2474,36 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
               <div className="p-2.5 space-y-1.5 text-ink flex-1 flex flex-col justify-between">
                 {/* 1. Family & Personal Particulars Box */}
                 <div className="bg-[#faf6ee] rounded-lg p-2 border border-[#e6dbc8] space-y-1 text-[8.5px]">
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         Father's / Husband's Name
                       </span>
-                      <span className="font-bold text-ink truncate block">
+                      <span className="font-bold text-ink truncate block leading-tight">
                         {member.fatherName || "—"}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
-                        Date of Birth & Age
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
+                        Date of Birth
                       </span>
-                      <span className="font-bold text-ink block font-mono">
-                        {(() => {
-                          const formattedDob = formatDobDDMMYYYY(member.dob);
-                          if (!formattedDob) return "—";
-                          const memberAge = member.age ?? calcMemberAge(member.dob);
-                          return memberAge ? `${formattedDob} (${memberAge} Yrs)` : formattedDob;
-                        })()}
+                      <span className="font-bold text-ink block font-mono leading-tight">
+                        {formatDobDDMMYYYY(member.dob) || "—"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-[#ede3d3]">
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2 pt-1 border-t border-[#ede3d3]">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         Gender
                       </span>
-                      <span className="font-semibold text-ink block">
+                      <span className="font-semibold text-ink block leading-tight">
                         {getDisplayGender(member.gender)}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-[6.5px] text-[#554e44] uppercase font-bold block">
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
                         <span className="sr-only">Emergency Contact</span>
                         <span aria-hidden="true">Emergency / WhatsApp</span>
                       </span>
@@ -2573,7 +2519,7 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                           <>
                             {format10DigitMobile(member.emergencyNumber)}
                             {member.emergencyRelation && (
-                              <span className="font-sans font-medium text-[7px] text-[#554e44] ml-1">
+                              <span className="font-sans font-medium text-[7px] text-[#44403c] ml-1">
                                 ({member.emergencyRelation})
                               </span>
                             )}
@@ -2586,58 +2532,77 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Permanent Residential Address Box */}
+                {/* 2. Official Central Secretariat & Cadre Helpline */}
                 <div className="bg-[#faf6ee] rounded-lg p-2 border border-[#e6dbc8] space-y-1 text-[8px]">
-                  <div className="flex items-center gap-1 font-bold text-[#FF6200] text-[7.5px] uppercase tracking-wider">
-                    <MapPin size={10} className="text-[#FF6200] flex-shrink-0" />
-                    <span>Permanent Residential Address</span>
+                  <div className="flex items-center justify-between border-b border-[#ede3d3] pb-1">
+                    <span className="font-bold text-[#FF6200] text-[7.5px] uppercase tracking-wider">
+                      National Central Secretariat
+                    </span>
+                    <span className="text-[6.5px] font-mono font-bold text-[#44403c]">Estd. 1947</span>
                   </div>
-                  <div className="font-semibold text-ink truncate leading-tight text-[8px]">
-                    {member.address || "—"}
-                  </div>
-                  <div className="text-[7px] text-[#554e44] truncate">
-                    Taluk: <span className="font-medium text-ink">{member.taluk || "—"}</span> &nbsp;Dist:{" "}
-                    <span className="font-medium text-ink">{member.district || "—"}</span> &nbsp;State:{" "}
-                    <span className="font-medium text-ink">{member.state || "—"}</span> &nbsp;PIN:{" "}
-                    <span className="font-mono font-bold text-[#FF6200]">{member.pincode || "—"}</span>
-                  </div>
-                  {member.email && (
-                    <div className="text-[7px] text-[#554e44] truncate">
-                      Email: <span className="font-mono text-ink">{member.email}</span>
+
+                  <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2 pt-0.5">
+                    <div className="pr-1">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
+                        Cadre Helpline
+                      </span>
+                      <span className="font-mono font-bold text-ink block text-[7.5px] leading-tight">
+                        +91 9994625690
+                      </span>
+                      <span className="font-mono font-bold text-ink block text-[7.5px] leading-tight">
+                        +91 9514576540
+                      </span>
                     </div>
-                  )}
+                    <div className="pl-2">
+                      <span className="text-[6px] text-[#44403c] uppercase font-bold tracking-wider block">
+                        Official Verification
+                      </span>
+                      <span className="font-mono font-bold text-[#D65000] block text-[8px] leading-tight truncate">
+                        mahasevadal.com
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-[6.5px] text-[#44403c] pt-0.5 border-t border-[#ede3d3] space-y-0.5">
+                    <div className="leading-tight">
+                      <span className="font-semibold text-ink">Head Office:</span> No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.
+                    </div>
+                    <div className="text-[6px] text-[#44403c] truncate">
+                      <span className="font-semibold text-ink font-sans">Email:</span>{" "}
+                      <span className="font-mono text-muted-editorial">mahasevadalorganization@gmail.com</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 3. Official Terms & Directives */}
                 <div className="p-2 bg-white/95 rounded-lg border border-[#e8dfcf] space-y-1 text-[7px] text-[#4a443c] leading-relaxed">
-                  <div className="font-bold text-ink uppercase text-[7.5px] flex items-center gap-1">
-                    <ShieldCheck size={10} className="text-emerald-600 flex-shrink-0" />
-                    <span>Cadre Directives & Terms</span>
+                  <div className="font-bold text-ink uppercase text-[7.5px] tracking-wider">
+                    Cadre Directives & Terms
                   </div>
                   <ul className="list-disc list-outside pl-3 space-y-0.5 text-[6.5px] leading-tight">
                     <li>This card is non-transferable property of Maha Seva Dal (Estd. 1947).</li>
                     <li>Authorized for civic welfare, social upliftment & relief operations.</li>
-                    <li>If found, please return to Central Secretariat or nearest post box.</li>
+                    <li>If found, please return to Central Secretariat or call Helpline: +91 9994625690 / 9514576540.</li>
                   </ul>
                 </div>
 
                 {/* 4. 1D Barcode & Validity Row */}
                 <div className="flex items-center justify-between pt-1.5 border-t border-[#e8dfcf] text-[7.5px]">
                   <div className="flex flex-col justify-center">
-                    <div className="bg-white px-1.5 py-0.5 rounded border border-[#e5dac8] shadow-2xs inline-block">
-                      <BarcodeSvg code={member.registrationId} className="h-4.5 w-24" />
+                    <div className="bg-white px-2 py-0.5 rounded border border-[#e5dac8] shadow-2xs inline-block">
+                      <BarcodeSvg code={member.registrationId} className="h-4.5 w-28" />
                     </div>
-                    <div className="font-mono text-[6.5px] text-[#554e44] font-bold mt-0.5">
+                    <div className="font-mono text-[6.5px] text-[#44403c] font-bold mt-0.5 tracking-wider">
                       REG: {member.registrationId}
                     </div>
                   </div>
 
                   <div className="text-right flex flex-col justify-center">
-                    <div className="bg-white px-2 py-1 rounded border border-[#e5dac8] shadow-2xs inline-block space-y-0.5">
-                      <div className="text-[6.5px] text-[#554e44] font-medium">
+                    <div className="bg-white px-2.5 py-1 rounded border border-[#e5dac8] shadow-2xs inline-block space-y-0.5">
+                      <div className="text-[6.5px] text-[#44403c] font-medium">
                         ISSUED: <span className="font-mono font-bold text-ink">{issueDate}</span>
                       </div>
-                      <div className="text-[6px] font-bold text-[#FF6200] uppercase tracking-tight">
+                      <div className="text-[6px] font-extrabold text-[#FF6200] uppercase tracking-wider">
                         Central Exec. Committee
                       </div>
                     </div>

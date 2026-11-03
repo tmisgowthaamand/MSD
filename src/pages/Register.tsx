@@ -4018,7 +4018,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
             {/* Title */}
             <h3 className="font-serif text-lg font-bold text-ink mb-5 tracking-tight">
-              Official Secretariat
+              Official Head Office
             </h3>
 
             {/* Simple Details List */}
@@ -4026,7 +4026,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-[#FF6200] flex-shrink-0 mt-0.5" />
                 <span className="leading-relaxed text-ink">
-                  Maha Seva Dal Secretariat, Head Office, India
+                  No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -4040,12 +4040,21 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-[#FF6200] flex-shrink-0" />
-                <a
-                  href="tel:+919994625690"
-                  className="hover:text-[#FF6200] transition-colors font-mono font-medium text-ink"
-                >
-                  +91 9994625690
-                </a>
+                <div className="font-mono font-medium text-ink flex items-center gap-1.5 flex-wrap">
+                  <a
+                    href="tel:+919994625690"
+                    className="hover:text-[#FF6200] transition-colors"
+                  >
+                    +91 9994625690
+                  </a>
+                  <span className="text-muted-editorial">,</span>
+                  <a
+                    href="tel:+919514576540"
+                    className="hover:text-[#FF6200] transition-colors"
+                  >
+                    +91 9514576540
+                  </a>
+                </div>
               </li>
             </ul>
 

@@ -75,10 +75,10 @@ const PrivacyPolicy: React.FC = () => {
               </p>
               <div className="p-4 rounded-xl bg-surface-soft border border-hairline font-mono text-xs text-ink space-y-1">
                 <div><strong>Organization:</strong> Maha Seva Dal (Estd. 1947 · Unity of People's)</div>
-                <div><strong>Central Secretariat:</strong> National Head Office, India</div>
+                <div><strong>Head Office:</strong> No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.</div>
                 <div><strong>Official Portal:</strong> https://mahasevadal.com</div>
                 <div><strong>Contact Email:</strong> mahasevadalorganization@gmail.com</div>
-                <div><strong>Central Helpline:</strong> +91 9994625690</div>
+                <div><strong>Central Helpline:</strong> +91 9994625690, +91 9514576540</div>
               </div>
             </article>
 
@@ -320,11 +320,11 @@ const PrivacyPolicy: React.FC = () => {
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Phone size={13} className="text-[#FF6200]" />
-                    <span className="font-mono text-ink">+91 9994625690</span>
+                    <span className="font-mono text-ink">+91 9994625690, +91 9514576540</span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MapPin size={13} className="text-[#FF6200]" />
-                    <span>Official Secretariat, National Headquarters, India</span>
+                    <span>Head Office: No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.</span>
                   </span>
                 </div>
               </div>

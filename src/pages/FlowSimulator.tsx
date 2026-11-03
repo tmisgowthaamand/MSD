@@ -501,6 +501,48 @@ const BackCardView: React.FC<{ member: any; issueDate: string; memberAge?: numbe
         )}
       </div>
 
+        {/* 2. Official Central Secretariat & Cadre Helpline */}
+        <div className="bg-[#faf6ee] rounded-lg p-1.5 border border-[#e6dbc8] space-y-1 text-[7px]">
+          <div className="flex items-center justify-between border-b border-[#ede3d3] pb-0.5">
+            <span className="font-bold text-[#FF6200] text-[6.5px] uppercase tracking-wider">
+              National Central Secretariat
+            </span>
+            <span className="text-[6px] font-mono font-bold text-[#44403c]">Estd. 1947</span>
+          </div>
+
+          <div className="grid grid-cols-2 divide-x divide-[#ede3d3] gap-x-2 pt-0.5">
+            <div className="pr-1">
+              <span className="text-[5.5px] text-[#554e44] uppercase font-bold tracking-wider block">
+                Cadre Helpline
+              </span>
+              <span className="font-mono font-bold text-ink block text-[7px] leading-tight">
+                +91 9994625690
+              </span>
+              <span className="font-mono font-bold text-ink block text-[7px] leading-tight">
+                +91 9514576540
+              </span>
+            </div>
+            <div className="pl-1.5 flex flex-col justify-center">
+              <span className="text-[5.5px] text-[#554e44] uppercase font-bold tracking-wider block">
+                Official Verification
+              </span>
+              <span className="font-mono font-bold text-[#D65000] block text-[7px] leading-tight truncate">
+                mahasevadal.com
+              </span>
+            </div>
+          </div>
+
+          <div className="text-[6px] text-[#44403c] pt-0.5 border-t border-[#ede3d3] space-y-0.5">
+            <div className="leading-tight truncate">
+              <span className="font-semibold text-ink">Head Office:</span> No.8/7, Thiruvallar 1st Street, Adambakkam, Chennai - 600 088.
+            </div>
+            <div className="text-[6px] text-[#44403c] truncate">
+              <span className="font-semibold text-ink font-sans">Email:</span>{" "}
+              <span className="font-mono text-muted-editorial">mahasevadalorganization@gmail.com</span>
+            </div>
+          </div>
+        </div>
+
       {/* 3. Official Terms & Directives */}
       <div className="p-1.5 bg-white/95 rounded-lg border border-[#e8dfcf] space-y-0.5 text-[6px] text-[#4a443c] leading-tight">
         <div className="font-bold text-ink uppercase text-[6.5px] flex items-center gap-1">
@@ -510,7 +552,7 @@ const BackCardView: React.FC<{ member: any; issueDate: string; memberAge?: numbe
         <ul className="list-disc list-outside pl-2.5 space-y-0.5 text-[5.5px] leading-snug">
           <li>This card is non-transferable property of Maha Seva Dal (Estd. 1947).</li>
           <li>Authorized for civic welfare, social upliftment & relief operations.</li>
-          <li>If found, please return to Central Secretariat or nearest post box.</li>
+          <li>If found, please return to Central Secretariat or call Helpline: +91 9994625690 / 9514576540.</li>
         </ul>
       </div>
 
