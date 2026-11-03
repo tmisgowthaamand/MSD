@@ -42,9 +42,13 @@ const parseAllowedOrigins = () => {
     process.env.FRONTEND_URL,
     ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : []),
   ];
-  const list = envList
-    .filter(Boolean)
-    .map((o) => o.trim().replace(/\/+$/, ""));
+  const list = [
+    "https://mahasevadal.com",
+    "https://www.mahasevadal.com",
+    ...envList
+      .filter(Boolean)
+      .map((o) => o.trim().replace(/\/+$/, "")),
+  ];
 
   if (process.env.NODE_ENV !== "production") {
     list.push(
