@@ -18,6 +18,7 @@ import {
   Plus,
   Edit3,
   Trash2,
+  Loader2,
   Smartphone,
   Globe,
   CheckCheck,
@@ -209,6 +210,7 @@ interface ConversationItem {
 }
 
 interface CrmLeadItem {
+  id?: string;
   mobile: string;
   fullName: string;
   channel: "whatsapp" | "web" | string;
@@ -342,6 +344,18 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
   const [leadPage, setLeadPage] = useState<number>(1);
   const [leadPageSize, setLeadPageSize] = useState<number>(10);
 
+  // Deletion States for WhatsApp CRM & Custom CRM
+  const [selectedConvMobiles, setSelectedConvMobiles] = useState<string[]>([]);
+  const [convToDelete, setConvToDelete] = useState<ConversationItem | null>(null);
+  const [bulkConvDeleteOpen, setBulkConvDeleteOpen] = useState<boolean>(false);
+  const [messageToDelete, setMessageToDelete] = useState<{ mobile: string; message: ConversationMessageItem } | null>(null);
+  const [deleteActionLoading, setDeleteActionLoading] = useState<boolean>(false);
+
+  // Leads Deletion States in CRM
+  const [selectedCrmLeadIds, setSelectedCrmLeadIds] = useState<string[]>([]);
+  const [crmLeadToDelete, setCrmLeadToDelete] = useState<CrmLeadItem | null>(null);
+  const [bulkCrmLeadDeleteOpen, setBulkCrmLeadDeleteOpen] = useState<boolean>(false);
+
   // 3. Template Editor Modal State
   const [templateFilterStatus, setTemplateFilterStatus] = useState<string>("ALL");
   const [editingTemplate, setEditingTemplate] = useState<Partial<WhatsAppTemplateItem> | null>(
@@ -382,6 +396,141 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
   const showNotice = (text: string, type: "success" | "error" = "success") => {
     setBannerMsg({ text, type });
     setTimeout(() => setBannerMsg(null), 4000);
+  };
+
+  // Delete individual conversation from MongoDB
+  const confirmDeleteConversation = async () => {
+    if (!convToDelete) return;
+    setDeleteActionLoading(true);
+    try {
+      const res = await fetch(getApiUrl(`/api/whatsapp-crm/inbox/${convToDelete.mobile}`), {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete conversation");
+
+      setConversations((prev) => prev.filter((c) => c.mobile !== convToDelete.mobile));
+      setSelectedConvMobiles((prev) => prev.filter((m) => m !== convToDelete.mobile));
+      if (selectedMobile === convToDelete.mobile) {
+        setSelectedMobile(null);
+      }
+      showNotice(`Chat with ${convToDelete.customerName} (+91 ${convToDelete.mobile}) permanently deleted from MongoDB.`);
+      setConvToDelete(null);
+    } catch (err: any) {
+      alert(`Delete chat error: ${err.message}`);
+    } finally {
+      setDeleteActionLoading(false);
+    }
+  };
+
+  // Bulk delete conversations from MongoDB
+  const confirmBulkDeleteConversations = async () => {
+    if (selectedConvMobiles.length === 0) return;
+    setDeleteActionLoading(true);
+    try {
+      const res = await fetch(getApiUrl("/api/whatsapp-crm/inbox/bulk-delete"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobiles: selectedConvMobiles }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to bulk delete conversations");
+
+      setConversations((prev) => prev.filter((c) => !selectedConvMobiles.includes(c.mobile)));
+      if (selectedMobile && selectedConvMobiles.includes(selectedMobile)) {
+        setSelectedMobile(null);
+      }
+      showNotice(`Successfully deleted ${selectedConvMobiles.length} conversation(s) from MongoDB.`);
+      setSelectedConvMobiles([]);
+      setBulkConvDeleteOpen(false);
+    } catch (err: any) {
+      alert(`Bulk delete error: ${err.message}`);
+    } finally {
+      setDeleteActionLoading(false);
+    }
+  };
+
+  // Delete individual message (WhatsApp-style) from MongoDB
+  const confirmDeleteMessage = async () => {
+    if (!messageToDelete) return;
+    setDeleteActionLoading(true);
+    try {
+      const msgId = messageToDelete.message.messageId;
+      const res = await fetch(
+        getApiUrl(`/api/whatsapp-crm/inbox/${messageToDelete.mobile}/messages/${msgId}`),
+        { method: "DELETE" }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete message");
+
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.mobile === messageToDelete.mobile) {
+            const remainingMsgs = (c.messages || []).filter((m) => m.messageId !== msgId);
+            const last = remainingMsgs[remainingMsgs.length - 1];
+            return {
+              ...c,
+              messages: remainingMsgs,
+              lastMessagePreview: last ? (last.content || `[${last.type || "media"}]`) : "",
+              lastMessageAt: last?.timestamp || c.lastMessageAt,
+            };
+          }
+          return c;
+        })
+      );
+      showNotice("Message permanently deleted from MongoDB.");
+      setMessageToDelete(null);
+    } catch (err: any) {
+      alert(`Delete message error: ${err.message}`);
+    } finally {
+      setDeleteActionLoading(false);
+    }
+  };
+
+  // Delete individual lead from CRM leads tab
+  const confirmDeleteCrmLead = async () => {
+    if (!crmLeadToDelete) return;
+    setDeleteActionLoading(true);
+    try {
+      const res = await fetch(getApiUrl(`/api/leads/${crmLeadToDelete.id || crmLeadToDelete.mobile}`), {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete lead");
+
+      setLeads((prev) => prev.filter((l) => l.id !== crmLeadToDelete.id && l.mobile !== crmLeadToDelete.mobile));
+      setSelectedCrmLeadIds((prev) => prev.filter((id) => id !== crmLeadToDelete.id));
+      showNotice(`Lead ${crmLeadToDelete.fullName} (+91 ${crmLeadToDelete.mobile}) deleted from MongoDB.`);
+      setCrmLeadToDelete(null);
+    } catch (err: any) {
+      alert(`Delete lead error: ${err.message}`);
+    } finally {
+      setDeleteActionLoading(false);
+    }
+  };
+
+  // Bulk delete leads from CRM leads tab
+  const confirmBulkDeleteCrmLeads = async () => {
+    if (selectedCrmLeadIds.length === 0) return;
+    setDeleteActionLoading(true);
+    try {
+      const res = await fetch(getApiUrl("/api/leads/bulk-delete"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedCrmLeadIds }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to bulk delete leads");
+
+      setLeads((prev) => prev.filter((l) => !selectedCrmLeadIds.includes(l.id)));
+      showNotice(`Deleted ${selectedCrmLeadIds.length} lead(s) from MongoDB.`);
+      setSelectedCrmLeadIds([]);
+      setBulkCrmLeadDeleteOpen(false);
+    } catch (err: any) {
+      alert(`Bulk delete leads error: ${err.message}`);
+    } finally {
+      setDeleteActionLoading(false);
+    }
   };
 
   const fetchCrmOverview = useCallback(async (silent = false) => {
@@ -1470,10 +1619,35 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                 </div>
               </div>
 
+              {/* Bulk Action Bar for Selected Chats */}
+              {selectedConvMobiles.length > 0 && (
+                <div className="p-2 bg-amber-50 border-b border-amber-200 flex items-center justify-between text-xs text-amber-950 animate-fade-in shrink-0">
+                  <span className="font-bold">{selectedConvMobiles.length} selected</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setBulkConvDeleteOpen(true)}
+                      className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 size={11} />
+                      <span>Delete ({selectedConvMobiles.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedConvMobiles([])}
+                      className="text-[11px] text-stone-600 hover:text-stone-900 px-1 cursor-pointer"
+                    >
+                      Deselect
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Active Chats List (Fast Smooth Custom Scrollbar) */}
               <div className="divide-y divide-[#F3EDE3] overflow-y-auto custom-scrollbar scroll-smooth flex-1 min-h-0">
                 {paginatedConversations.map((conv) => {
                   const isSelected = activeConversation?.mobile === conv.mobile;
+                  const isChecked = selectedConvMobiles.includes(conv.mobile);
                   const isBotHandled = conv.registrationStatus === "INCOMPLETE";
                   const lastMsg =
                     conv.messages && conv.messages.length > 0
@@ -1493,16 +1667,31 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                   ).replace(/^[^\w\s]+\s*/, "");
 
                   return (
-                    <button
+                    <div
                       key={conv.mobile}
-                      type="button"
                       onClick={() => handleSelectConversation(conv)}
-                      className={`w-full px-3 py-2.5 text-left transition-colors flex items-start gap-2.5 cursor-pointer ${
+                      className={`group relative w-full px-2.5 py-2.5 text-left transition-colors flex items-start gap-2 cursor-pointer ${
                         isSelected
                           ? "bg-[#FFF7EE] border-l-4 border-l-[#FF6200]"
                           : "bg-white hover:bg-[#FAF6F0]/70"
                       }`}
                     >
+                      {/* Selection Checkbox */}
+                      <div
+                        className="pt-1.5 shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedConvMobiles((prev) => [...prev, conv.mobile]);
+                            else setSelectedConvMobiles((prev) => prev.filter((m) => m !== conv.mobile));
+                          }}
+                          className="rounded border-stone-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                      </div>
+
                       {/* Circular User Avatar with Official Channel Icon Sub-Badge */}
                       <div className="relative shrink-0 mt-0.5">
                         <div
@@ -1529,7 +1718,7 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
 
                       {/* Card Content */}
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        {/* Row 1: Name • Agent/Bot */}
+                        {/* Row 1: Name • Agent/Bot + Hover Delete Icon */}
                         <div className="flex items-center justify-between gap-1">
                           <div className="flex items-center gap-1 min-w-0">
                             <span className="font-bold text-xs text-stone-900 truncate">
@@ -1550,11 +1739,25 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                               )}
                             </span>
                           </div>
-                          {conv.unreadCount > 0 && (
-                            <span className="w-4 h-4 rounded-full bg-[#FF6200] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-                              {conv.unreadCount}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {/* Hover Delete Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConvToDelete(conv);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-0.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-opacity cursor-pointer"
+                              title={`Delete chat with ${conv.customerName}`}
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                            {conv.unreadCount > 0 && (
+                              <span className="w-4 h-4 rounded-full bg-[#FF6200] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                                {conv.unreadCount}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Row 2: Clean 1-Line Message Preview */}
@@ -1566,12 +1769,12 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                             <span
                               className={`text-[9.5px] px-1.5 py-0.2 rounded font-bold ${
                                 conv.registrationStatus === "APPROVED"
-                                  ? "bg-emerald-100/90 text-emerald-800"
-                                  : conv.registrationStatus === "INCOMPLETE"
-                                  ? "bg-amber-100/90 text-amber-900"
-                                  : conv.registrationStatus === "REJECTED"
-                                  ? "bg-sky-100 text-sky-800"
-                                  : "bg-[#FFE8D6] text-[#C2410C]"
+                                    ? "bg-emerald-100/90 text-emerald-800"
+                                    : conv.registrationStatus === "INCOMPLETE"
+                                    ? "bg-amber-100/90 text-amber-900"
+                                    : conv.registrationStatus === "REJECTED"
+                                    ? "bg-sky-100 text-sky-800"
+                                    : "bg-[#FFE8D6] text-[#C2410C]"
                               }`}
                             >
                               {conv.registrationStatus === "APPROVED"
@@ -1595,7 +1798,7 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                           <span className="text-[10px] text-stone-400 shrink-0">{timeLabel}</span>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1756,6 +1959,16 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                         <CreditCard size={14} />
                       </button>
 
+                      {/* Delete Conversation Button */}
+                      <button
+                        type="button"
+                        onClick={() => setConvToDelete(activeConversation)}
+                        className="p-1.5 rounded-lg border border-[#E4D9C8] hover:bg-rose-50 text-stone-400 hover:text-rose-600 cursor-pointer shrink-0 transition-colors"
+                        title="Permanently Delete this conversation"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+
                       {/* Close Conversation (Return to Standby Inbox) Button */}
                       <button
                         type="button"
@@ -1887,7 +2100,7 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                         className={`flex flex-col ${isOutbound ? "items-end" : "items-start"}`}
                       >
                         <div
-                          className={`max-w-[82%] sm:max-w-[72%] rounded-2xl px-3.5 py-2 text-xs shadow-2xs space-y-1.5 ${
+                          className={`group relative max-w-[82%] sm:max-w-[72%] rounded-2xl px-3.5 py-2 text-xs shadow-2xs space-y-1.5 ${
                             isOutbound
                               ? "bg-[#FDECD8] text-stone-900 rounded-tr-xs border border-[#F5CBA7]"
                               : "bg-white text-stone-900 rounded-tl-xs border border-[#EAE0D2]"
@@ -1988,7 +2201,18 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                             </div>
                           )}
 
-                          <div className="flex items-center justify-end gap-1 text-[10px] text-stone-400">
+                          <div className="flex items-center justify-end gap-1.5 text-[10px] text-stone-400">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMessageToDelete({ mobile: activeConversation.mobile, message: msg });
+                              }}
+                              className="opacity-0 group-hover:opacity-100 hover:text-rose-600 transition-opacity p-0.5 cursor-pointer mr-0.5"
+                              title="Delete message from MongoDB"
+                            >
+                              <Trash2 size={11} />
+                            </button>
                             <span>
                               {msg.timestamp
                                 ? new Date(msg.timestamp).toLocaleTimeString("en-IN", {
@@ -3208,12 +3432,63 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
             </div>
           </div>
 
+          {/* Bulk Selection Bar for CRM Leads */}
+          {selectedCrmLeadIds.length > 0 && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/90 border border-amber-300 text-xs shadow-2xs animate-fade-in">
+              <div className="flex items-center gap-2 text-amber-950 font-bold">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px]">
+                  {selectedCrmLeadIds.length}
+                </span>
+                <span>{selectedCrmLeadIds.length} lead(s) selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCrmLeadIds([])}
+                  className="px-2.5 py-1 rounded-lg text-stone-600 hover:bg-stone-200 text-xs font-semibold cursor-pointer"
+                >
+                  Clear Selection
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkCrmLeadDeleteOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Selected ({selectedCrmLeadIds.length})</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Leads Table */}
           <div className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-50/90 text-[10.5px] font-bold uppercase text-stone-500">
+                    <th className="py-3 px-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedLeads.length > 0 &&
+                          paginatedLeads.every((l) =>
+                            selectedCrmLeadIds.includes(l.id || l.mobile)
+                          )
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const ids = paginatedLeads.map((l) => l.id || l.mobile);
+                            setSelectedCrmLeadIds((prev) => Array.from(new Set([...prev, ...ids])));
+                          } else {
+                            const ids = new Set(paginatedLeads.map((l) => l.id || l.mobile));
+                            setSelectedCrmLeadIds((prev) => prev.filter((id) => !ids.has(id)));
+                          }
+                        }}
+                        className="rounded border-stone-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                        title="Select All Leads on page"
+                      />
+                    </th>
                     <th className="py-3 px-4">Candidate & Mobile</th>
                     <th className="py-3 px-3">Channel</th>
                     <th className="py-3 px-3">Registration Category</th>
@@ -3233,6 +3508,21 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                       title="Double-click to open lead conversation"
                       className="hover:bg-stone-50/70 cursor-pointer select-none"
                     >
+                      <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedCrmLeadIds.includes(lead.id || lead.mobile)}
+                          onChange={(e) => {
+                            const leadKey = lead.id || lead.mobile;
+                            if (e.target.checked) {
+                              setSelectedCrmLeadIds((prev) => [...prev, leadKey]);
+                            } else {
+                              setSelectedCrmLeadIds((prev) => prev.filter((id) => id !== leadKey));
+                            }
+                          }}
+                          className="rounded border-stone-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="py-2.5 px-4">
                         <div className="font-bold text-stone-900">{lead.fullName}</div>
                         <div className="font-mono text-[11px] text-stone-500">+91 {lead.mobile}</div>
@@ -3277,16 +3567,29 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                         <div className="text-[10.5px] text-stone-400">{lead.state || "India"}</div>
                       </td>
                       <td className="py-2.5 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedMobile(lead.mobile);
-                            setActiveSubTab("inbox");
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-[11px] font-bold transition-colors cursor-pointer"
-                        >
-                          Open Chat
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedMobile(lead.mobile);
+                              setActiveSubTab("inbox");
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-[11px] font-bold transition-colors cursor-pointer"
+                          >
+                            Open Chat
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCrmLeadToDelete(lead);
+                            }}
+                            className="p-1 rounded-lg hover:bg-rose-50 text-stone-400 hover:text-rose-600 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                            title="Delete Lead from MongoDB"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -4081,6 +4384,242 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                 qrDataUrl={previewCardQrUrl}
                 defaultView="both"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: WHATSAPP-STYLE DELETE CHAT CONFIRMATION ─── */}
+      {convToDelete && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-stone-900">Delete chat?</h3>
+                <p className="text-xs text-rose-600 font-medium">Permanent Deletion from MongoDB</p>
+              </div>
+            </div>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs space-y-1">
+              <div><span className="text-stone-500">Contact:</span> <strong>{convToDelete.customerName}</strong></div>
+              <div><span className="text-stone-500">Mobile:</span> <strong className="font-mono">+91 {convToDelete.mobile}</strong></div>
+              <div><span className="text-stone-500">Messages:</span> <strong className="font-mono">{convToDelete.messages?.length || 0} messages</strong></div>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Messages will be permanently deleted from MongoDB and the conversation history will be wiped. This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setConvToDelete(null)}
+                disabled={deleteActionLoading}
+                className="px-3.5 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteConversation}
+                disabled={deleteActionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {deleteActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Delete Chat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: BULK DELETE CONVERSATIONS CONFIRMATION ─── */}
+      {bulkConvDeleteOpen && selectedConvMobiles.length > 0 && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-stone-900">Delete Selected Chats</h3>
+                <p className="text-xs text-rose-600 font-medium">Bulk Deletion ({selectedConvMobiles.length} Chats)</p>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-950">
+              <p className="font-bold">⚠️ Permanently delete {selectedConvMobiles.length} chat conversation(s) from MongoDB?</p>
+              <p className="text-stone-600 mt-1 leading-relaxed">
+                All message histories, inbound replies, and conversation records will be permanently removed from MongoDB.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setBulkConvDeleteOpen(false)}
+                disabled={deleteActionLoading}
+                className="px-3.5 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeleteConversations}
+                disabled={deleteActionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {deleteActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Delete {selectedConvMobiles.length} Chats</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: WHATSAPP-STYLE DELETE MESSAGE CONFIRMATION ─── */}
+      {messageToDelete && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-stone-900">Delete message?</h3>
+                <p className="text-xs text-rose-600 font-medium">Permanent Deletion from MongoDB</p>
+              </div>
+            </div>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs space-y-1">
+              <div className="text-stone-500 font-medium">Message preview:</div>
+              <div className="text-stone-800 italic line-clamp-3 bg-white p-2 rounded border border-stone-200">
+                &ldquo;{messageToDelete.message.content || `[${messageToDelete.message.type || "Media"}]`}&rdquo;
+              </div>
+              <div className="text-[10px] text-stone-400">
+                {messageToDelete.message.timestamp
+                  ? new Date(messageToDelete.message.timestamp).toLocaleString("en-IN")
+                  : "Recent"}
+              </div>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Are you sure you want to delete this message? This message will be permanently removed from MongoDB.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setMessageToDelete(null)}
+                disabled={deleteActionLoading}
+                className="px-3.5 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteMessage}
+                disabled={deleteActionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {deleteActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Delete for Everyone</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: DELETE CRM LEAD CONFIRMATION ─── */}
+      {crmLeadToDelete && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-stone-900">Delete CRM Lead</h3>
+                <p className="text-xs text-rose-600 font-medium">Permanent Deletion from MongoDB</p>
+              </div>
+            </div>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs space-y-1 font-mono">
+              <div><b>Candidate:</b> {crmLeadToDelete.fullName}</div>
+              <div><b>Mobile:</b> +91 {crmLeadToDelete.mobile}</div>
+              <div><b>Channel:</b> {crmLeadToDelete.channel}</div>
+              <div><b>Category:</b> {crmLeadToDelete.leadCategory}</div>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Are you sure you want to permanently delete this lead from MongoDB? All partial drop-off records will be removed.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setCrmLeadToDelete(null)}
+                disabled={deleteActionLoading}
+                className="px-3.5 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteCrmLead}
+                disabled={deleteActionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {deleteActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Permanently Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: BULK DELETE CRM LEADS CONFIRMATION ─── */}
+      {bulkCrmLeadDeleteOpen && selectedCrmLeadIds.length > 0 && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-stone-900">Delete Selected Leads</h3>
+                <p className="text-xs text-rose-600 font-medium">Bulk Deletion ({selectedCrmLeadIds.length} Leads)</p>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-950">
+              <p className="font-bold">⚠️ Permanently delete {selectedCrmLeadIds.length} lead records from MongoDB?</p>
+              <p className="text-stone-600 mt-1 leading-relaxed">
+                All contact and registration progress history for these candidates will be permanently removed.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setBulkCrmLeadDeleteOpen(false)}
+                disabled={deleteActionLoading}
+                className="px-3.5 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeleteCrmLeads}
+                disabled={deleteActionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {deleteActionLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Delete {selectedCrmLeadIds.length} Leads</span>
+              </button>
             </div>
           </div>
         </div>

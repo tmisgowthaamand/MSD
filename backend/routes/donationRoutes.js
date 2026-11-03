@@ -6,6 +6,7 @@ const {
   updateDonationStatus,
   bulkUpdateDonationStatus,
   deleteDonation,
+  bulkDeleteDonations,
   exportDonationsJson,
   verifyDonationQuery,
 } = require("../controllers/donationController");
@@ -37,6 +38,8 @@ router.patch("/admin/bulk-status", verifyToken, bulkUpdateDonationStatus);
 router.patch("/admin/:id/status", verifyToken, updateDonationStatus);
 router.put("/admin/:id/status", verifyToken, updateDonationStatus);
 router.delete("/admin/:id", verifyToken, deleteDonation);
+router.post("/admin/bulk-delete", verifyToken, bulkDeleteDonations);
+router.delete("/admin/bulk", verifyToken, bulkDeleteDonations);
 
 module.exports = router;
 

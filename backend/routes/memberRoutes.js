@@ -8,6 +8,7 @@ const {
   bulkUpdateMemberStatus,
   resubmitMemberPhoto,
   deleteMember,
+  bulkDeleteMembers,
   exportMembersJson,
   adminLogin,
   verifyAdminToken,
@@ -79,6 +80,8 @@ router.patch("/admin/bulk-status", verifyToken, bulkUpdateMemberStatus);
 router.patch("/admin/:id/status", verifyToken, updateMemberStatus);
 router.put("/admin/:id/status", verifyToken, updateMemberStatus);
 router.delete("/admin/:id", verifyToken, deleteMember);
+router.post("/admin/bulk-delete", verifyToken, bulkDeleteMembers);
+router.delete("/admin/bulk", verifyToken, bulkDeleteMembers);
 router.post("/admin/card-settings", verifyToken, updateCardSettings);
 
 module.exports = router;

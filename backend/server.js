@@ -154,6 +154,9 @@ app.post("/api/logs/activity", (req, res) => {
   res.status(200).json({ success: true, loggedAt: new Date().toISOString() });
 });
 
+// ─── Static Uploads (Photos & ID Cards on https://mahasevadal.com) ───
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // ─── Routes ──────────────────────────────────────────────────
 app.use("/api/upload", uploadRoutes);
 app.use("/api/members", memberRoutes);

@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const IncompleteLead = require("../models/IncompleteLead");
 const Member = require("../models/Member");
-const CrmConfig = require("../models/CrmConfig");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const { sendMetaWhatsAppMessage } = require("./whatsappController");
 
@@ -33,28 +32,16 @@ const trackLeadInternal = async ({
       updateFields.fullName = fullName.trim();
     }
 
-    // Check if auto-assignment is enabled in CRM Config
+    // Check if auto-assignment is needed for telecaller
     const existingLead = await IncompleteLead.findOne({ mobile: cleanPhone }).lean();
     if (!existingLead || !existingLead.assignedTelecaller?.id) {
-      try {
-        const config = await CrmConfig.findOne({ key: "GLOBAL_CRM_CONFIG" });
-        if (config && config.autoAssignmentEnabled) {
-          const activeCallers = (config.telecallers || []).filter((t) => t.active);
-          if (activeCallers.length > 0) {
-            const idx = (config.roundRobinIndex || 0) % activeCallers.length;
-            const chosen = activeCallers[idx];
-            updateFields.assignedTelecaller = {
-              id: chosen.id,
-              name: chosen.name,
-              mobile: chosen.mobile || "",
-            };
-            updateFields.assignedAt = new Date();
-            updateFields.assignmentMode = "ROUND_ROBIN";
-            config.roundRobinIndex = (idx + 1) % activeCallers.length;
-            await config.save();
-          }
-        }
-      } catch (cfgErr) {}
+      updateFields.assignedTelecaller = {
+        id: "tc_01",
+        name: "Ananya Rao",
+        mobile: "9876543201",
+      };
+      updateFields.assignedAt = new Date();
+      updateFields.assignmentMode = "ROUND_ROBIN";
     }
 
     const lead = await IncompleteLead.findOneAndUpdate(
@@ -302,8 +289,63 @@ const sendLeadNudge = async (req, res) => {
 const deleteLead = async (req, res) => {
   try {
     const { id } = req.params;
-    await IncompleteLead.findByIdAndDelete(id);
+    let deleted = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      deleted = await IncompleteLead.findByIdAndDelete(id);
+    }
+    if (!deleted) {
+      const cleanPhone = String(id).replace(/\D/g, "").slice(-10);
+      if (cleanPhone.length === 10) {
+        deleted = await IncompleteLead.findOneAndDelete({ mobile: cleanPhone });
+      }
+    }
+
+    // Also remove from cadres table if it is an incomplete lead
+    const cleanPhone = deleted?.mobile || String(id).replace(/\D/g, "").slice(-10);
+    if (cleanPhone && cleanPhone.length === 10) {
+      await Member.deleteMany({
+        mobile: cleanPhone,
+        status: { $in: ["INCOMPLETE", "ABANDONED"] },
+      }).catch(() => {});
+    }
+
     return res.status(200).json({ success: true, message: "Lead removed from recovery CRM" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// API: Bulk delete incomplete leads
+const bulkDeleteLeads = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "No lead IDs provided for bulk deletion." });
+    }
+
+    const objectIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    const phones = ids.map((id) => String(id).replace(/\D/g, "").slice(-10)).filter((p) => p.length === 10);
+
+    const deleteResult = await IncompleteLead.deleteMany({
+      $or: [
+        { _id: { $in: objectIds } },
+        { mobile: { $in: phones } },
+      ],
+    });
+
+    // Also remove any matching incomplete leads from cadres table
+    if (phones.length > 0) {
+      await Member.deleteMany({
+        mobile: { $in: phones },
+        status: { $in: ["INCOMPLETE", "ABANDONED"] },
+      }).catch(() => {});
+    }
+
+    return res.status(200).json({
+      success: true,
+      deletedCount: deleteResult.deletedCount,
+      message: `Successfully deleted ${deleteResult.deletedCount} lead record(s).`,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -315,4 +357,5 @@ module.exports = {
   getAllLeads,
   sendLeadNudge,
   deleteLead,
+  bulkDeleteLeads,
 };

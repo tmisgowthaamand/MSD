@@ -3,7 +3,7 @@ const Member = require("../models/Member");
 const IncompleteLead = require("../models/IncompleteLead");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const CardSetting = require("../models/CardSetting");
-const cloudinary = require("../config/cloudinary");
+const { generateCadreIdCards } = require("../utils/idCardGenerator");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -24,20 +24,8 @@ const escapeRegex = (str) => {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
-// Local MongoDB sync backup file path
-const DATA_FILE_PATH = path.join(__dirname, "../data/members_mongodb_data.json");
-
-// Helper to write all MongoDB members into local JSON backup file (optional local dev only)
-const syncToLocalBackupFile = async () => {
-  if (process.env.ENABLE_LOCAL_BACKUP !== "true") return;
-  try {
-    const allMembers = await Member.find({}).sort({ createdAt: -1 });
-    await fs.promises.writeFile(DATA_FILE_PATH, JSON.stringify(allMembers, null, 2), "utf8");
-    console.log(`📁 MongoDB data synced to local file: ${DATA_FILE_PATH} (${allMembers.length} records)`);
-  } catch (err) {
-    console.warn("Warning: Failed to sync MongoDB data to file:", err.message);
-  }
-};
+// Data is persisted directly to DigitalOcean MongoDB (zero local file persistence)
+const syncToLocalBackupFile = async () => {};
 
 // State Code Mapping Helper (All 28 States & 8 Union Territories)
 const getStateCode = (stateName) => {
@@ -583,21 +571,8 @@ const registerMember = async (req, res) => {
       });
     }
 
-    let photoUrl = "";
-    let photoPublicId = "";
-
-    // Upload photo to Cloudinary if provided
-    if (req.file) {
-      const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-      const uploadRes = await cloudinary.uploader.upload(base64, {
-        folder: "msd/members",
-        resource_type: "image",
-      });
-      photoUrl = uploadRes.secure_url;
-      photoPublicId = uploadRes.public_id;
-    }
-
     const registrationId = await generateRegId();
+    const safeRegId = registrationId.replace(/[^a-zA-Z0-9_-]/g, "_");
 
     // Sanitize names and administrative text to official Title Case
     const sanitizedFullName = toTitleCase(fullName);
@@ -609,6 +584,51 @@ const registerMember = async (req, res) => {
     const sanitizedProfession = profession ? toTitleCase(profession) : "";
     const sanitizedAddress = toTitleCase(address);
     const finalAge = calculateAgeFromDob(dob);
+
+    const baseUrl = process.env.STORAGE_BASE_URL || "https://mahasevadal.com";
+    let photoUrl = `${baseUrl}/uploads/photos/${safeRegId}_photo.jpg`;
+    let photoPublicId = `do_${safeRegId}`;
+    let cardUrl = `${baseUrl}/uploads/cards/${safeRegId}_card.png`;
+
+    // Direct local / droplet disk storage
+    const photosDir = path.resolve(__dirname, "../uploads/photos");
+    const cardsDir = path.resolve(__dirname, "../uploads/cards");
+    if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
+    if (!fs.existsSync(cardsDir)) fs.mkdirSync(cardsDir, { recursive: true });
+
+    if (req.file) {
+      try {
+        fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), req.file.buffer);
+      } catch (saveErr) {
+        console.warn("Failed saving candidate photo locally:", saveErr.message);
+      }
+    }
+
+    // Generate combined 2-sided ID Card
+    try {
+      const cardMemberData = {
+        registrationId,
+        fullName: sanitizedFullName,
+        fatherName: sanitizedFatherName,
+        dob,
+        gender,
+        mobile,
+        whatsapp: whatsapp || mobile,
+        bloodGroup: bloodGroup || "O+",
+        wing,
+        state,
+        district: sanitizedDistrict,
+        address: sanitizedAddress,
+        pincode,
+        emergencyNumber: emergencyNumber || "",
+      };
+      const { combinedPngBuffer } = await generateCadreIdCards(cardMemberData, req.file ? req.file.buffer : null);
+      if (combinedPngBuffer) {
+        fs.writeFileSync(path.join(cardsDir, `${safeRegId}_card.png`), combinedPngBuffer);
+      }
+    } catch (cardErr) {
+      console.warn("Card generation warning during registration:", cardErr.message);
+    }
 
     const newMember = new Member({
       registrationId,
@@ -625,6 +645,8 @@ const registerMember = async (req, res) => {
       bloodGroup: bloodGroup || "",
       photoUrl,
       photoPublicId,
+      cardUrl,
+      cardIssuedAt: new Date(),
       state,
       district: sanitizedDistrict,
       assembly: sanitizedAssembly,
@@ -636,6 +658,9 @@ const registerMember = async (req, res) => {
       wing,
       pledgeAccepted: true,
       status: "PENDING",
+      leadStatus: "RECOVERED",
+      lastStepCompleted: "Step 4: Oath Pledged",
+      channelSource: "web",
     });
 
     const saved = await newMember.save();
@@ -1058,16 +1083,38 @@ const deleteMember = async (req, res) => {
       return res.status(404).json({ error: "Member not found." });
     }
 
-    // Delete photo from Cloudinary if stored
-    if (member.photoPublicId) {
+    // Delete photo and card from disk if stored
+    const safeRegId = member.registrationId ? member.registrationId.replace(/[^a-zA-Z0-9_-]/g, "_") : "";
+    if (safeRegId) {
       try {
-        await cloudinary.uploader.destroy(member.photoPublicId);
+        const photoPath = path.resolve(__dirname, `../uploads/photos/${safeRegId}_photo.jpg`);
+        const cardPath = path.resolve(__dirname, `../uploads/cards/${safeRegId}_card.png`);
+        if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+        if (fs.existsSync(cardPath)) fs.unlinkSync(cardPath);
       } catch (err) {
-        console.warn("Cloudinary delete warning:", err.message);
+        console.warn("Local disk file delete warning:", err.message);
       }
     }
 
     await Member.findByIdAndDelete(member._id);
+    await Member.deleteMany({
+      $or: [
+        { _id: member._id },
+        { registrationId: member.registrationId },
+        { mobile: member.mobile },
+      ],
+    }).catch(() => {});
+
+    // Ensure physical deletion from legacy members collection as well
+    if (mongoose.connection?.db) {
+      await mongoose.connection.db.collection("members").deleteMany({
+        $or: [
+          { _id: member._id },
+          { registrationId: member.registrationId },
+          { mobile: member.mobile },
+        ],
+      }).catch(() => {});
+    }
 
     // Sync to file
     await syncToLocalBackupFile();
@@ -1076,6 +1123,71 @@ const deleteMember = async (req, res) => {
   } catch (error) {
     console.error("Delete Member Error:", error);
     res.status(500).json({ error: error.message || "Failed to delete member." });
+  }
+};
+
+// ─── 4b. Bulk Delete Members ──────────────────────────────────────────────────
+const bulkDeleteMembers = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "No member IDs provided for bulk deletion." });
+    }
+
+    const objectIds = ids.filter((id) => mongoose.isValidObjectId(id));
+
+    // Find all matching members so we can cleanup their stored photo & card files
+    const membersToDelete = await Member.find({
+      $or: [
+        { _id: { $in: objectIds } },
+        { registrationId: { $in: ids } },
+        { mobile: { $in: ids } },
+      ],
+    }).lean();
+
+    for (const m of membersToDelete) {
+      const safeRegId = m.registrationId ? m.registrationId.replace(/[^a-zA-Z0-9_-]/g, "_") : "";
+      if (safeRegId) {
+        try {
+          const photoPath = path.resolve(__dirname, `../uploads/photos/${safeRegId}_photo.jpg`);
+          const cardPath = path.resolve(__dirname, `../uploads/cards/${safeRegId}_card.png`);
+          if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+          if (fs.existsSync(cardPath)) fs.unlinkSync(cardPath);
+        } catch (err) {
+          console.warn("Bulk delete local file cleanup warning:", err.message);
+        }
+      }
+    }
+
+    const deleteResult = await Member.deleteMany({
+      $or: [
+        { _id: { $in: objectIds } },
+        { registrationId: { $in: ids } },
+        { mobile: { $in: ids } },
+      ],
+    });
+
+    // Also delete matching records from legacy members collection if present
+    if (mongoose.connection?.db) {
+      await mongoose.connection.db.collection("members").deleteMany({
+        $or: [
+          { _id: { $in: objectIds } },
+          { registrationId: { $in: ids } },
+          { mobile: { $in: ids } },
+        ],
+      }).catch(() => {});
+    }
+
+    await syncToLocalBackupFile();
+
+    res.json({
+      success: true,
+      deletedCount: deleteResult.deletedCount,
+      message: `Successfully deleted ${deleteResult.deletedCount} member record(s).`,
+    });
+  } catch (error) {
+    console.error("Bulk Delete Members Error:", error);
+    res.status(500).json({ error: error.message || "Failed to bulk delete members." });
   }
 };
 
@@ -1152,6 +1264,7 @@ const formatMemberCardData = (member) => {
     email: member.email || "",
     bloodGroup: member.bloodGroup || "",
     photoUrl: member.photoUrl || "",
+    cardUrl: member.cardUrl || "",
     state: member.state || "",
     district: member.district || "",
     assembly: member.assembly || "",
@@ -1269,6 +1382,9 @@ const checkMemberStatus = async (req, res) => {
 const https = require("https");
 
 const ALLOWED_PHOTO_HOSTS = new Set([
+  "mahasevadal.com",
+  "143.244.129.138",
+  "localhost",
   "res.cloudinary.com",
   ...(process.env.ALLOWED_PHOTO_HOSTS
     ? process.env.ALLOWED_PHOTO_HOSTS.split(",").map((h) => h.trim().toLowerCase())
@@ -1397,7 +1513,7 @@ const proxyPhoto = (req, res) => {
 // ─── 9. Card Seal & Signature Settings ─────────────────────────────────────
 const DEFAULT_CARD_SETTINGS = {
   customSealUrl: "",
-  customSignatureUrl: "https://res.cloudinary.com/wq9znxvs/image/upload/v1793442693/msd/brand/signature.png",
+  customSignatureUrl: "/signature.png",
   signatoryName: "Authorized Signatory",
   signatoryTitle: "Central Executive Committee",
 };
@@ -1499,25 +1615,30 @@ const resubmitMemberPhoto = async (req, res) => {
       return res.status(400).json({ error: "Photo re-submission is only permitted for applications with REJECTED status." });
     }
 
-    // Upload to Cloudinary
-    const b64 = Buffer.from(file.buffer).toString("base64");
-    const base64 = `data:${file.mimetype};base64,${b64}`;
-    const uploadRes = await cloudinary.uploader.upload(base64, {
-      folder: "msd/members",
-      resource_type: "image",
-    });
+    const safeRegId = member.registrationId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const baseUrl = process.env.STORAGE_BASE_URL || "https://mahasevadal.com";
+    const photosDir = path.resolve(__dirname, "../uploads/photos");
+    const cardsDir = path.resolve(__dirname, "../uploads/cards");
+    if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
+    if (!fs.existsSync(cardsDir)) fs.mkdirSync(cardsDir, { recursive: true });
 
-    // Delete old photo if it exists
-    if (member.photoPublicId) {
-      try {
-        await cloudinary.uploader.destroy(member.photoPublicId);
-      } catch (err) {
-        console.warn("Could not delete old photo from Cloudinary:", err.message);
+    // Save updated candidate photo directly to droplet disk
+    fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), file.buffer);
+    member.photoUrl = `${baseUrl}/uploads/photos/${safeRegId}_photo.jpg`;
+    member.photoPublicId = `do_${safeRegId}`;
+
+    // Regenerate combined both-sides ID card
+    try {
+      const { combinedPngBuffer } = await generateCadreIdCards(member, file.buffer);
+      if (combinedPngBuffer) {
+        fs.writeFileSync(path.join(cardsDir, `${safeRegId}_card.png`), combinedPngBuffer);
+        member.cardUrl = `${baseUrl}/uploads/cards/${safeRegId}_card.png`;
+        member.cardIssuedAt = new Date();
       }
+    } catch (cardErr) {
+      console.warn("Card regeneration warning during photo re-submission:", cardErr.message);
     }
 
-    member.photoUrl = uploadRes.secure_url;
-    member.photoPublicId = uploadRes.public_id;
     member.status = "PENDING";
     member.adminNotes = "Applicant re-submitted updated passport photograph. Awaiting committee verification.";
 
@@ -1543,6 +1664,7 @@ module.exports = {
   bulkUpdateMemberStatus,
   resubmitMemberPhoto,
   deleteMember,
+  bulkDeleteMembers,
   exportMembersJson,
   adminLogin,
   verifyAdminToken,

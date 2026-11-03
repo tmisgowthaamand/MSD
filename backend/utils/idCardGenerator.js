@@ -301,7 +301,23 @@ const generateCadreIdCards = async (member, photoBuffer = null) => {
   const frontPngBuffer = await sharp(Buffer.from(frontSvg)).png().toBuffer();
   const backPngBuffer = await sharp(Buffer.from(backSvg)).png().toBuffer();
 
-  return { frontPngBuffer, backPngBuffer };
+  // Combine Front and Back into ONE single official card image (side-by-side on cream canvas)
+  const combinedPngBuffer = await sharp({
+    create: {
+      width: 1640,
+      height: 540,
+      channels: 4,
+      background: { r: 250, g: 247, b: 242, alpha: 1 },
+    },
+  })
+    .composite([
+      { input: frontPngBuffer, top: 20, left: 15 },
+      { input: backPngBuffer, top: 20, left: 825 },
+    ])
+    .png({ quality: 95 })
+    .toBuffer();
+
+  return { frontPngBuffer, backPngBuffer, combinedPngBuffer };
 };
 
 module.exports = {

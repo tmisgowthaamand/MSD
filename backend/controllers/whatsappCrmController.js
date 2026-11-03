@@ -2,9 +2,6 @@ const mongoose = require("mongoose");
 const IncompleteLead = require("../models/IncompleteLead");
 const Member = require("../models/Member");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
-const WhatsAppTemplate = require("../models/WhatsAppTemplate");
-const WhatsAppCampaign = require("../models/WhatsAppCampaign");
-const CrmConfig = require("../models/CrmConfig");
 const { sendMetaWhatsAppMessage } = require("./whatsappController");
 
 // ─── Default Telecallers & Templates Seed Data ───────────────────────────────
@@ -195,420 +192,71 @@ let activeLoadTestMetrics = {
   ],
 };
 
-// Ensure initial CRM data exists
+// In-Memory Stores (Templates, Campaigns, CRM Config - NOT saved in MongoDB per user requirement)
+let inMemoryConfig = {
+  singletonKey: "MSD_CRM_GLOBAL_CONFIG",
+  autoAssignmentEnabled: true,
+  assignmentMode: "ROUND_ROBIN",
+  roundRobinIndex: 0,
+  autoRegistrationConfirmation: true,
+  autoIncompleteReminder: true,
+  incompleteReminderDelayMinutes: 30,
+  metaMessagingLimitTier: "TIER_100K",
+  metaRateLimitMps: 80,
+  workerConcurrency: 16,
+  batchChunkSize: 5000,
+  telecallers: DEFAULT_TELECALLERS,
+};
+
+let inMemoryTemplates = DEFAULT_TEMPLATES.map((t, idx) => ({
+  _id: `tpl_default_${idx + 1}`,
+  ...t,
+  createdAt: new Date(),
+  lastSyncedAt: new Date(),
+}));
+
+let inMemoryCampaigns = [
+  {
+    _id: "camp_01",
+    name: "Auto: Instant Registration Confirmation & ID Dispatch",
+    triggerType: "AUTO_REGISTRATION_CONFIRMATION",
+    templateName: "msd_registration_confirmation_id_v1",
+    templateDisplayName: "Successful Registration Confirmation",
+    targetAudience: "COMPLETED_LEADS",
+    status: "RUNNING",
+    rateLimitMps: 80,
+    stats: { totalTargets: 0, sent: 0, delivered: 0, read: 0, failed: 0, replied: 0 },
+    createdAt: new Date(),
+  },
+  {
+    _id: "camp_02",
+    name: "Auto: 30-Min Incomplete Registration Drop-Off Recovery",
+    triggerType: "AUTO_INCOMPLETE_REMINDER",
+    templateName: "msd_incomplete_registration_reminder_v1",
+    templateDisplayName: "Incomplete Registration Reminder",
+    targetAudience: "INCOMPLETE_LEADS",
+    status: "RUNNING",
+    rateLimitMps: 80,
+    stats: { totalTargets: 0, sent: 0, delivered: 0, read: 0, failed: 0, replied: 0 },
+    createdAt: new Date(),
+  },
+  {
+    _id: "camp_03",
+    name: "Pending Verification Telecaller Follow-Up Wave",
+    triggerType: "MANUAL_BULK",
+    templateName: "msd_cadre_verification_followup_v1",
+    templateDisplayName: "Cadre Verification Follow-Up",
+    targetAudience: "COMPLETED_LEADS",
+    status: "COMPLETED",
+    rateLimitMps: 60,
+    stats: { totalTargets: 0, sent: 0, delivered: 0, read: 0, failed: 0, replied: 0 },
+    createdAt: new Date(),
+  },
+];
+
+// Ensure initial CRM config exists in memory
 const ensureCrmInitialized = async () => {
-  try {
-    let config = await CrmConfig.findOne({ singletonKey: "MSD_CRM_GLOBAL_CONFIG" });
-    if (!config) {
-      config = await CrmConfig.create({
-        singletonKey: "MSD_CRM_GLOBAL_CONFIG",
-        autoAssignmentEnabled: true,
-        assignmentMode: "ROUND_ROBIN",
-        roundRobinIndex: 0,
-        autoRegistrationConfirmation: true,
-        autoIncompleteReminder: true,
-        incompleteReminderDelayMinutes: 30,
-        metaMessagingLimitTier: "TIER_100K",
-        metaRateLimitMps: 80,
-        workerConcurrency: 16,
-        batchChunkSize: 5000,
-        telecallers: DEFAULT_TELECALLERS,
-      });
-    }
-
-    const tplCount = await WhatsAppTemplate.countDocuments();
-    if (tplCount === 0) {
-      await WhatsAppTemplate.insertMany(DEFAULT_TEMPLATES, { ordered: false }).catch(() => {});
-    }
-
-    const campCount = await WhatsAppCampaign.countDocuments();
-    if (campCount === 0) {
-      await WhatsAppCampaign.insertMany([
-        {
-          name: "Auto: Instant Registration Confirmation & ID Dispatch",
-          triggerType: "AUTO_REGISTRATION_CONFIRMATION",
-          templateName: "msd_registration_confirmation_id_v1",
-          templateDisplayName: "Successful Registration Confirmation",
-          targetAudience: "COMPLETED_LEADS",
-          status: "RUNNING",
-          rateLimitMps: 80,
-          stats: { totalTargets: 16, sent: 16, delivered: 16, read: 14, failed: 0, replied: 9 },
-        },
-        {
-          name: "Auto: 30-Min Incomplete Registration Drop-Off Recovery",
-          triggerType: "AUTO_INCOMPLETE_REMINDER",
-          templateName: "msd_incomplete_registration_reminder_v1",
-          templateDisplayName: "Incomplete Registration Reminder",
-          targetAudience: "INCOMPLETE_LEADS",
-          status: "RUNNING",
-          rateLimitMps: 80,
-          stats: { totalTargets: 28, sent: 26, delivered: 25, read: 19, failed: 1, replied: 11 },
-        },
-        {
-          name: "Pending Verification Telecaller Follow-Up Wave",
-          triggerType: "MANUAL_BULK",
-          templateName: "msd_cadre_verification_followup_v1",
-          templateDisplayName: "Cadre Verification Follow-Up",
-          targetAudience: "COMPLETED_LEADS",
-          status: "COMPLETED",
-          rateLimitMps: 60,
-          stats: { totalTargets: 12, sent: 12, delivered: 12, read: 10, failed: 0, replied: 8 },
-        },
-      ]).catch(() => {});
-    }
-
-    // Sync existing Members & IncompleteLeads into WhatsAppConversation threads if empty or if any legacy conversation lacks stepHistory
-    const totalConvs = await WhatsAppConversation.countDocuments();
-    const legacyConvs = await WhatsAppConversation.countDocuments({
-      $or: [
-        { stepHistory: { $exists: false } },
-        { stepHistory: { $size: 0 } },
-        { registrationStatus: "REJECTED", lastMessagePreview: { $regex: /Received my Cadre ID/i } },
-      ],
-    });
-    if (totalConvs === 0 || legacyConvs > 0) {
-      await WhatsAppConversation.deleteMany({}).catch(() => {});
-      const members = await Member.find().sort({ createdAt: -1 }).limit(250).lean();
-      const incompleteLeads = await IncompleteLead.find().sort({ abandonedAt: -1 }).limit(250).lean();
-      const telecallers = config.telecallers || DEFAULT_TELECALLERS;
-
-      const convDocs = [];
-      const seenPhones = new Set();
-
-      members.forEach((m, idx) => {
-        const cleanPhone = String(m.mobile || "").replace(/\D/g, "").slice(-10);
-        if (!cleanPhone || cleanPhone.length < 10 || seenPhones.has(cleanPhone)) return;
-        seenPhones.add(cleanPhone);
-
-        const tc = telecallers[idx % telecallers.length];
-        const now = new Date(m.createdAt || Date.now());
-        const isApproved = m.status === "APPROVED";
-        const isRejected = m.status === "REJECTED";
-        const isExisting = isApproved && idx % 2 === 0;
-        const chSource = idx % 3 === 0 ? "flow_simulator" : idx % 3 === 1 ? "whatsapp" : "web";
-        const cardPayload = isApproved
-          ? {
-              registrationId: m.registrationId,
-              fullName: m.fullName,
-              fatherName: m.fatherName || "—",
-              dob: m.dob || "1996-05-14",
-              gender: m.gender || "Male",
-              mobile: cleanPhone,
-              whatsapp: cleanPhone,
-              bloodGroup: m.bloodGroup || "O+",
-              wing: m.wing || "General Seva Cadre",
-              state: m.state || "Tamil Nadu",
-              district: m.district || "Chennai",
-              address: m.address || `${m.district || "Central"}, ${m.state || "India"}`,
-              pincode: m.pincode || "600001",
-              photoUrl: m.photoUrl || "/founder-saragabani-gopu-portrait.jpg",
-              status: "APPROVED",
-              action: "DOWNLOADED_PDF",
-            }
-          : null;
-
-        const stepList = isExisting
-          ? [
-              {
-                stepLabel: "User Triggered 'Hi' (24h Window Opened)",
-                buttonClicked: "Hi",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 900000),
-              },
-              {
-                stepLabel: "Welcome Back Menu (Already a Member)",
-                buttonClicked: "My Cadre ID Card",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 600000),
-              },
-              {
-                stepLabel: "Digital PVC ID Card Viewed in WhatsApp",
-                buttonClicked: "Open Actual Web ID Card (Both Sides)",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 400000),
-              },
-              {
-                stepLabel: "Digital PVC ID Card Downloaded (PDF & PNG)",
-                buttonClicked: "Download PDF (A4)",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 200000),
-              },
-            ]
-          : [
-              {
-                stepLabel: "User Triggered 'Hi' (24h Window Opened)",
-                buttonClicked: "Hi",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 950000),
-              },
-              {
-                stepLabel: "Main Menu -> Selected Cadre Registration",
-                buttonClicked: "Cadre Registration",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 800000),
-              },
-              {
-                stepLabel: "Step 1: Personal Profile & DOB",
-                buttonClicked: "Proceed to Address",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 650000),
-              },
-              {
-                stepLabel: `Step 2: Location (${m.district || "District"}, ${m.state || "State"})`,
-                buttonClicked: "Choose Seva Wing",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 500000),
-              },
-              {
-                stepLabel: `Step 3: Selected Wing (${m.wing || "General Seva Cadre"})`,
-                buttonClicked: m.wing || "General Seva Cadre",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 380000),
-              },
-              {
-                stepLabel: "Step 4: Passport Photo & 1947 Oath Confirmed",
-                buttonClicked: "Confirm & Take Oath",
-                channelSource: chSource,
-                timestamp: new Date(now.getTime() - 250000),
-              },
-              ...(isApproved
-                ? [
-                    {
-                      stepLabel: "Digital ID Card Issued & Downloaded",
-                      buttonClicked: "Both Sides (PNG)",
-                      channelSource: chSource,
-                      timestamp: new Date(now.getTime() - 120000),
-                    },
-                  ]
-                : []),
-            ];
-
-        convDocs.push({
-          mobile: cleanPhone,
-          customerName: m.fullName || "Cadre Member",
-          memberType: isExisting ? "EXISTING_MEMBER" : "NEW_MEMBER",
-          channel: chSource,
-          registrationStatus: m.status || "COMPLETED",
-          registrationId: m.registrationId,
-          lastCompletedStep: isApproved
-            ? "Digital ID Card Issued & Downloaded"
-            : isRejected
-            ? "Application Rejected (Photo / Address Remark)"
-            : "Step 4: Photo & 1947 Oath Submitted",
-          wing: m.wing,
-          state: m.state,
-          district: m.district,
-          cardViewed: isApproved,
-          cardDownloaded: isApproved,
-          cardDownloadedAt: isApproved ? new Date(Date.now() - idx * 15 * 60 * 1000) : null,
-          stepHistory: stepList,
-          assignedTelecaller: {
-            id: tc.id,
-            name: tc.name,
-            assignedAt: now,
-          },
-          unreadCount: m.status === "PENDING" ? 1 : 0,
-          conversationState: m.status === "PENDING" ? "PENDING_REPLY" : "OPEN",
-          optInStatus: "OPTED_IN",
-          windowExpiresAt: new Date(Date.now() + 23 * 3600 * 1000),
-          lastMessageAt: new Date(Date.now() - idx * 18 * 60 * 1000),
-          lastMessagePreview:
-            m.status === "PENDING"
-              ? "Namaste ji, I have submitted my form. When will my ID card be approved?"
-              : isRejected
-              ? `Application ${m.registrationId} requires a clear passport photo — Follow-up needed.`
-              : `🪪 Downloaded Digital ID Card (${m.registrationId}) · Jai Hind!`,
-          messages: [
-            {
-              messageId: `msg_in_${cleanPhone}_hi`,
-              direction: "INBOUND",
-              type: "text",
-              content: "Hi",
-              stepName: "Session Start (24h Window Opened)",
-              buttonClicked: "Hi",
-              channelSource: chSource,
-              status: "RECEIVED",
-              senderName: m.fullName,
-              timestamp: new Date(now.getTime() - 900000),
-            },
-            {
-              messageId: `msg_out_${cleanPhone}_menu`,
-              direction: "OUTBOUND",
-              type: "interactive",
-              content: isExisting
-                ? `Welcome back, ${m.fullName}!\nMaha Seva Dal Cadre ID: ${m.registrationId}\nAssigned Wing: ${m.wing}\n\nPlease choose an option below: [My Cadre ID Card] [History & Ideology] [Our Official Website] [Donate & Support]`
-                : `Namaste & Welcome to Maha Seva Dal (Estd. 1947)!\n\nChoose a service from the menu below: [Cadre Registration] [My Cadre ID Card] [History & Ideology] [Donate & Support]`,
-              stepName: isExisting ? "Existing Member Menu" : "New Visitor Root Menu",
-              channelSource: chSource,
-              status: "READ",
-              senderName: "MSD WhatsApp Bot",
-              timestamp: new Date(now.getTime() - 840000),
-            },
-            {
-              messageId: `msg_in_${cleanPhone}_click1`,
-              direction: "INBOUND",
-              type: "interactive",
-              content: isExisting
-                ? "Tapped: My Cadre ID Card"
-                : `Tapped: Cadre Registration ➔ Completed Step 1 (Profile), Step 2 (${m.district}, ${m.state}), Step 3 (${m.wing}), Step 4 (Photo & 1947 Oath)`,
-              stepName: isExisting ? "Lookup Cadre ID Card" : "Step 1–4 Registration Flow",
-              buttonClicked: isExisting ? "My Cadre ID Card" : "Confirm & Take Oath",
-              channelSource: chSource,
-              status: "RECEIVED",
-              senderName: m.fullName,
-              timestamp: new Date(now.getTime() - 500000),
-            },
-            {
-              messageId: `msg_out_${cleanPhone}_2`,
-              direction: "OUTBOUND",
-              type: "template",
-              templateName: isApproved
-                ? "msd_registration_confirmation_id_v1"
-                : "msd_cadre_verification_followup_v1",
-              content: isApproved
-                ? `Jai Hind ${m.fullName}! 🇮🇳 Your Maha Seva Dal registration (${m.registrationId}) for ${m.wing} in ${m.district}, ${m.state} is verified. Your Official Digital PVC ID Card (Front & Reverse) is attached below.`
-                : isRejected
-                ? `Namaste ${m.fullName}, your application (${m.registrationId}) could not be approved due to an unclear passport photo or incomplete address. Please reply with a clear photo to complete verification.`
-                : `Namaste ${m.fullName} 🙏, your Maha Seva Dal application (${m.registrationId}) for ${m.wing} in ${m.district}, ${m.state} has been received and is under verification.`,
-              stepName: isApproved
-                ? "Official Digital ID Card Dispatched"
-                : isRejected
-                ? "Verification Follow-Up Sent"
-                : "Application Received Notice",
-              channelSource: chSource,
-              cardData: cardPayload,
-              status: "READ",
-              senderName: "MSD WhatsApp Bot",
-              timestamp: new Date(now.getTime() - 300000),
-            },
-            {
-              messageId: `msg_in_${cleanPhone}_3`,
-              direction: "INBOUND",
-              type: "text",
-              content:
-                m.status === "PENDING"
-                  ? "Namaste ji, I have submitted my form. When will my ID card be approved?"
-                  : isRejected
-                  ? "Namaste ji, I will upload a clear passport photo right away."
-                  : `🪪 Viewed & Downloaded Digital ID Card (${m.registrationId}_Both.png & PDF). Thank you! Jai Hind!`,
-              stepName:
-                m.status === "PENDING"
-                  ? "Awaiting Admin Approval"
-                  : isRejected
-                  ? "Candidate Replied on Rejection Notice"
-                  : "ID Card Viewed & Downloaded by Member",
-              buttonClicked: isApproved ? "Download PDF (A4) & Both Sides (PNG)" : null,
-              channelSource: chSource,
-              status: "RECEIVED",
-              senderName: m.fullName,
-              timestamp: new Date(Date.now() - idx * 18 * 60 * 1000),
-            },
-          ],
-        });
-      });
-
-      incompleteLeads.forEach((l, idx) => {
-        const cleanPhone = String(l.mobile || "").replace(/\D/g, "").slice(-10);
-        if (!cleanPhone || cleanPhone.length < 10 || seenPhones.has(cleanPhone)) return;
-        seenPhones.add(cleanPhone);
-
-        const tc = telecallers[(idx + 1) % telecallers.length];
-        const chSource = l.channel === "web" ? "web" : "whatsapp";
-        convDocs.push({
-          mobile: cleanPhone,
-          customerName: l.fullName || "Candidate",
-          memberType: "NEW_MEMBER",
-          channel: chSource,
-          registrationStatus: "INCOMPLETE",
-          registrationId: null,
-          lastCompletedStep: l.lastStepLabel || "Step 2: Location & District",
-          wing: l.partialData?.wing || "General Seva Cadre",
-          state: l.partialData?.state || "Maharashtra",
-          district: l.partialData?.district || "",
-          cardViewed: false,
-          cardDownloaded: false,
-          stepHistory: [
-            {
-              stepLabel: "User Triggered 'Hi' (24h Window Opened)",
-              buttonClicked: "Hi",
-              channelSource: chSource,
-              timestamp: new Date(Date.now() - 3800000),
-            },
-            {
-              stepLabel: "Tapped: Cadre Registration",
-              buttonClicked: "Cadre Registration",
-              channelSource: chSource,
-              timestamp: new Date(Date.now() - 3700000),
-            },
-            {
-              stepLabel: l.lastStepLabel || "Step 2: Location & District",
-              buttonClicked: l.partialData?.state || "Proceed to Address",
-              channelSource: chSource,
-              timestamp: new Date(Date.now() - 3600000),
-            },
-          ],
-          assignedTelecaller: {
-            id: tc.id,
-            name: tc.name,
-            assignedAt: new Date(l.abandonedAt || Date.now()),
-          },
-          unreadCount: 1,
-          conversationState: "PENDING_REPLY",
-          optInStatus: "OPTED_IN",
-          windowExpiresAt: new Date(Date.now() + 22 * 3600 * 1000),
-          lastMessageAt: new Date(Date.now() - (idx + 1) * 25 * 60 * 1000),
-          lastMessagePreview: `Stopped at ${l.lastStepLabel || "Step 2"} — 24h Window Open`,
-          messages: [
-            {
-              messageId: `msg_in_inc_${cleanPhone}_hi`,
-              direction: "INBOUND",
-              type: "text",
-              content: "Hi",
-              stepName: "Session Start (24h Window Opened)",
-              buttonClicked: "Hi",
-              channelSource: chSource,
-              status: "RECEIVED",
-              senderName: l.fullName || "Candidate",
-              timestamp: new Date(Date.now() - 3800000),
-            },
-            {
-              messageId: `msg_in_inc_${cleanPhone}_1`,
-              direction: "INBOUND",
-              type: "interactive",
-              content: `Tapped: Cadre Registration ➔ Filled up to ${l.lastStepLabel || "Step 2: Location & District"}`,
-              stepName: l.lastStepLabel || "Step 2: Location & District",
-              buttonClicked: "Cadre Registration",
-              channelSource: chSource,
-              status: "RECEIVED",
-              senderName: l.fullName || "Candidate",
-              timestamp: new Date(Date.now() - 3600000),
-            },
-            {
-              messageId: `msg_out_inc_${cleanPhone}_2`,
-              direction: "OUTBOUND",
-              type: "template",
-              templateName: "msd_incomplete_registration_reminder_v1",
-              content: `Namaste ${l.fullName || "Friend"} 🙏, we noticed you stopped at ${l.lastStepLabel || "Step 2"}. Tap below to complete your registration in 60 seconds!`,
-              stepName: "24h Recovery Template Sent",
-              channelSource: chSource,
-              status: "DELIVERED",
-              senderName: "MSD WhatsApp Bot",
-              timestamp: new Date(Date.now() - (idx + 1) * 25 * 60 * 1000),
-            },
-          ],
-        });
-      });
-
-      if (convDocs.length > 0) {
-        await WhatsAppConversation.insertMany(convDocs, { ordered: false }).catch(() => {});
-      }
-    }
-
-    return config;
-  } catch (err) {
-    console.warn("[CRM Init Warning]:", err.message);
-    return null;
-  }
+  return inMemoryConfig;
 };
 
 // ─── 1. GET FULL WHATSAPP CRM OVERVIEW (Dashboard, Inbox, Leads, Templates, Campaigns) ───
@@ -617,14 +265,15 @@ const getCrmOverview = async (req, res) => {
     const config = await ensureCrmInitialized();
     const telecallers = config?.telecallers || DEFAULT_TELECALLERS;
 
-    // Fetch all core collections in parallel
-    const [members, rawIncomplete, conversations, templates, campaigns] = await Promise.all([
+    // Fetch live MongoDB collections (Templates, Campaigns & Config are maintained in-memory per requirement)
+    const [members, rawIncomplete, conversations] = await Promise.all([
       Member.find().sort({ createdAt: -1 }).limit(250).lean(),
       IncompleteLead.find().sort({ abandonedAt: -1 }).limit(250).lean(),
       WhatsAppConversation.find().sort({ lastMessageAt: -1 }).limit(250).lean(),
-      WhatsAppTemplate.find().sort({ createdAt: -1 }).lean(),
-      WhatsAppCampaign.find().sort({ createdAt: -1 }).lean(),
     ]);
+
+    const templates = inMemoryTemplates;
+    const campaigns = inMemoryCampaigns;
 
     // Build deduplicated Unified Leads (Completed + Incomplete) (Req 2)
     const unifiedLeadsMap = new Map();
@@ -1205,18 +854,14 @@ const assignLeads = async (req, res) => {
 const updateCrmConfig = async (req, res) => {
   try {
     const updates = req.body || {};
-    const config = await CrmConfig.findOneAndUpdate(
-      { singletonKey: "MSD_CRM_GLOBAL_CONFIG" },
-      { $set: updates },
-      { new: true, upsert: true }
-    );
-    return res.status(200).json({ success: true, config });
+    inMemoryConfig = { ...inMemoryConfig, ...updates };
+    return res.status(200).json({ success: true, config: inMemoryConfig });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-// ─── 5. WHATSAPP TEMPLATE CRUD & DIRECT META APPROVAL API (Req 4 & 5) ────────
+// ─── 5. WHATSAPP TEMPLATE CRUD (In-Memory, Zero MongoDB collections) ────────
 const createOrUpdateTemplate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1230,40 +875,25 @@ const createOrUpdateTemplate = async (req, res) => {
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, "_");
 
-    if (id && mongoose.Types.ObjectId.isValid(id)) {
-      const updated = await WhatsAppTemplate.findByIdAndUpdate(
-        id,
-        {
-          $set: {
-            ...payload,
-            name: formattedName,
-            metaStatus: payload.resubmitToMeta ? "APPROVED" : payload.metaStatus || "APPROVED",
-            rejectionReason: payload.resubmitToMeta ? null : payload.rejectionReason,
-            lastSyncedAt: new Date(),
-          },
-        },
-        { new: true }
-      );
-      return res.status(200).json({ success: true, template: updated });
+    const existingIdx = inMemoryTemplates.findIndex((t) => t._id === id || t.name === formattedName);
+    const templateItem = {
+      _id: id || `tpl_${Date.now()}`,
+      ...payload,
+      name: formattedName,
+      displayName: payload.displayName || payload.name,
+      metaStatus: payload.resubmitToMeta ? "APPROVED" : payload.metaStatus || "APPROVED",
+      metaTemplateId: payload.metaTemplateId || `meta_tpl_${Date.now().toString().slice(-8)}`,
+      rejectionReason: payload.resubmitToMeta ? null : payload.rejectionReason,
+      lastSyncedAt: new Date(),
+    };
+
+    if (existingIdx >= 0) {
+      inMemoryTemplates[existingIdx] = { ...inMemoryTemplates[existingIdx], ...templateItem };
+    } else {
+      inMemoryTemplates.unshift(templateItem);
     }
 
-    const created = await WhatsAppTemplate.findOneAndUpdate(
-      { name: formattedName },
-      {
-        $set: {
-          ...payload,
-          name: formattedName,
-          displayName: payload.displayName || payload.name,
-          metaStatus: payload.metaStatus || "APPROVED",
-          metaTemplateId: `meta_tpl_${Date.now().toString().slice(-8)}`,
-          rejectionReason: null,
-          lastSyncedAt: new Date(),
-        },
-      },
-      { new: true, upsert: true }
-    );
-
-    return res.status(201).json({ success: true, template: created });
+    return res.status(200).json({ success: true, template: templateItem });
   } catch (error) {
     console.error("[Template Save Error]:", error);
     return res.status(500).json({ error: error.message });
@@ -1273,9 +903,150 @@ const createOrUpdateTemplate = async (req, res) => {
 const deleteTemplate = async (req, res) => {
   try {
     const { id } = req.params;
-    await WhatsAppTemplate.findByIdAndDelete(id);
+    inMemoryTemplates = inMemoryTemplates.filter((t) => t._id !== id && t.name !== id);
     return res.status(200).json({ success: true });
   } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// ─── WhatsApp & Custom CRM Delete Handlers ────────────────────────────────────
+
+// Delete individual conversation
+const deleteConversation = async (req, res) => {
+  try {
+    const rawMobile = req.params.mobile || req.params.id;
+    if (!rawMobile) {
+      return res.status(400).json({ error: "Mobile number or conversation ID required." });
+    }
+    const cleanMobile = String(rawMobile).replace(/\D/g, "").slice(-10);
+
+    let deleteRes = null;
+    if (cleanMobile.length === 10) {
+      deleteRes = await WhatsAppConversation.deleteOne({ mobile: cleanMobile });
+    }
+    if ((!deleteRes || deleteRes.deletedCount === 0) && mongoose.Types.ObjectId.isValid(rawMobile)) {
+      deleteRes = await WhatsAppConversation.findByIdAndDelete(rawMobile);
+    }
+
+    // In Cadre record, reset whatsappCrm if present
+    if (cleanMobile.length === 10) {
+      await Member.updateOne(
+        { mobile: cleanMobile },
+        {
+          $set: {
+            "whatsappCrm.conversationState": "CLOSED",
+            "whatsappCrm.unreadCount": 0,
+            "whatsappCrm.messages": [],
+            "whatsappCrm.lastMessagePreview": "",
+          },
+        }
+      ).catch(() => {});
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation deleted successfully from database.",
+      mobile: cleanMobile,
+    });
+  } catch (error) {
+    console.error("Delete Conversation Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Bulk delete conversations
+const bulkDeleteConversations = async (req, res) => {
+  try {
+    const { mobiles, ids } = req.body;
+    const targetList = Array.isArray(mobiles) ? mobiles : Array.isArray(ids) ? ids : [];
+    if (targetList.length === 0) {
+      return res.status(400).json({ error: "No conversations provided for deletion." });
+    }
+
+    const cleanPhones = targetList
+      .map((m) => String(m).replace(/\D/g, "").slice(-10))
+      .filter((m) => m.length === 10);
+    const objectIds = targetList.filter((id) => mongoose.Types.ObjectId.isValid(id));
+
+    const deleteResult = await WhatsAppConversation.deleteMany({
+      $or: [
+        { mobile: { $in: cleanPhones } },
+        { _id: { $in: objectIds } },
+      ],
+    });
+
+    if (cleanPhones.length > 0) {
+      await Member.updateMany(
+        { mobile: { $in: cleanPhones } },
+        {
+          $set: {
+            "whatsappCrm.conversationState": "CLOSED",
+            "whatsappCrm.unreadCount": 0,
+            "whatsappCrm.messages": [],
+            "whatsappCrm.lastMessagePreview": "",
+          },
+        }
+      ).catch(() => {});
+    }
+
+    return res.status(200).json({
+      success: true,
+      deletedCount: deleteResult.deletedCount,
+      message: `Deleted ${deleteResult.deletedCount} conversation(s) successfully.`,
+    });
+  } catch (error) {
+    console.error("Bulk Delete Conversations Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete single message from conversation
+const deleteMessage = async (req, res) => {
+  try {
+    const { mobile, messageId } = req.params;
+    if (!mobile || !messageId) {
+      return res.status(400).json({ error: "Mobile and messageId are required." });
+    }
+    const cleanMobile = String(mobile).replace(/\D/g, "").slice(-10);
+
+    const conv = await WhatsAppConversation.findOne({ mobile: cleanMobile });
+    if (!conv) {
+      return res.status(404).json({ error: "Conversation not found." });
+    }
+
+    conv.messages = (conv.messages || []).filter(
+      (m) => m.messageId !== messageId && String(m._id) !== messageId
+    );
+
+    const lastMsg = conv.messages[conv.messages.length - 1];
+    conv.lastMessagePreview = lastMsg ? (lastMsg.content || `[${lastMsg.type || "media"}]`) : "";
+    conv.lastMessageAt = lastMsg?.timestamp || new Date();
+    await conv.save();
+
+    // Also update embedded messages in Cadre table
+    await Member.updateOne(
+      { mobile: cleanMobile },
+      {
+        $pull: {
+          "whatsappCrm.messages": {
+            $or: [{ messageId }, { _id: messageId }],
+          },
+        },
+        $set: {
+          "whatsappCrm.lastMessagePreview": conv.lastMessagePreview,
+          "whatsappCrm.lastMessageAt": conv.lastMessageAt,
+        },
+      }
+    ).catch(() => {});
+
+    return res.status(200).json({
+      success: true,
+      message: "Message deleted successfully.",
+      conversation: conv,
+    });
+  } catch (error) {
+    console.error("Delete Message Error:", error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -1284,7 +1055,7 @@ const deleteTemplate = async (req, res) => {
 const submitTemplateToMeta = async (req, res) => {
   try {
     const { id } = req.params;
-    const tpl = await WhatsAppTemplate.findById(id);
+    const tpl = inMemoryTemplates.find((t) => t._id === id || t.name === id);
     if (!tpl) return res.status(404).json({ error: "Template not found" });
 
     const wabaId = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
@@ -1369,19 +1140,13 @@ const syncTemplatesFromMeta = async (req, res) => {
         if (Array.isArray(data?.data)) {
           syncedFromMetaCloud = true;
           for (const remote of data.data) {
-            await WhatsAppTemplate.findOneAndUpdate(
-              { name: remote.name },
-              {
-                $set: {
-                  metaStatus: remote.status || "APPROVED",
-                  metaTemplateId: remote.id,
-                  category: remote.category || "UTILITY",
-                  language: remote.language || "en",
-                  rejectionReason: remote.rejected_reason || null,
-                  lastSyncedAt: new Date(),
-                },
-              }
-            );
+            const idx = inMemoryTemplates.findIndex((t) => t.name === remote.name);
+            if (idx >= 0) {
+              inMemoryTemplates[idx].metaStatus = remote.status || "APPROVED";
+              inMemoryTemplates[idx].metaTemplateId = remote.id;
+              inMemoryTemplates[idx].rejectionReason = remote.rejected_reason || null;
+              inMemoryTemplates[idx].lastSyncedAt = new Date();
+            }
           }
         }
       } catch (e) {
@@ -1389,13 +1154,14 @@ const syncTemplatesFromMeta = async (req, res) => {
       }
     }
 
-    // Also update any PENDING templates to APPROVED on sync simulation if not rejected
-    await WhatsAppTemplate.updateMany(
-      { metaStatus: "PENDING" },
-      { $set: { metaStatus: "APPROVED", lastSyncedAt: new Date() } }
-    );
+    inMemoryTemplates.forEach((t) => {
+      if (t.metaStatus === "PENDING") {
+        t.metaStatus = "APPROVED";
+        t.lastSyncedAt = new Date();
+      }
+    });
 
-    const templates = await WhatsAppTemplate.find().sort({ createdAt: -1 }).lean();
+    const templates = inMemoryTemplates;
     return res.status(200).json({
       success: true,
       syncedFromMetaCloud,
@@ -1424,7 +1190,7 @@ const createAndLaunchCampaign = async (req, res) => {
       return res.status(400).json({ error: "Campaign name and approved template are required" });
     }
 
-    const tpl = await WhatsAppTemplate.findOne({ name: templateName });
+    const tpl = inMemoryTemplates.find((t) => t.name === templateName);
     if (tpl && tpl.metaStatus !== "APPROVED") {
       return res.status(400).json({
         error: `Meta Policy Compliance Error: Template "${tpl.displayName}" is currently ${tpl.metaStatus}. Only APPROVED Meta templates can be used in campaigns.`,
@@ -1444,7 +1210,7 @@ const createAndLaunchCampaign = async (req, res) => {
         ]);
         targetCount = mCount + lCount;
       }
-      if (targetCount === 0) targetCount = 16;
+      if (targetCount === 0) targetCount = 1;
     }
 
     const isScheduled = Boolean(scheduledAt && new Date(scheduledAt) > new Date());
@@ -1453,7 +1219,8 @@ const createAndLaunchCampaign = async (req, res) => {
     const readCount = isScheduled ? 0 : Math.round(deliveredCount * 0.78);
     const repliedCount = isScheduled ? 0 : Math.round(readCount * 0.42);
 
-    const campaign = await WhatsAppCampaign.create({
+    const campaign = {
+      _id: `camp_${Date.now()}`,
       name,
       triggerType,
       templateName,
@@ -1471,7 +1238,10 @@ const createAndLaunchCampaign = async (req, res) => {
         failed: isScheduled ? 0 : targetCount - deliveredCount,
         replied: repliedCount,
       },
-    });
+      createdAt: new Date(),
+    };
+
+    inMemoryCampaigns.unshift(campaign);
 
     return res.status(201).json({
       success: true,
@@ -1594,6 +1364,9 @@ module.exports = {
   updateCrmConfig,
   createOrUpdateTemplate,
   deleteTemplate,
+  deleteConversation,
+  bulkDeleteConversations,
+  deleteMessage,
   submitTemplateToMeta,
   syncTemplatesFromMeta,
   createAndLaunchCampaign,

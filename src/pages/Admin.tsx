@@ -370,6 +370,7 @@ const Admin = ({
 
   // Delete Confirmation Modal State
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Card Download & Copy State inside Modal
@@ -1096,6 +1097,39 @@ const Admin = ({
       fetchMembers();
     } catch (err: any) {
       alert(`Delete error: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Perform Bulk Member Deletion from MongoDB
+  const confirmBulkDeleteMembers = async () => {
+    if (!token || selectedMemberIds.length === 0) return;
+    setDeleteLoading(true);
+
+    try {
+      const res = await fetch(getApiUrl("/api/members/admin/bulk-delete"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: selectedMemberIds }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to bulk delete members");
+
+      setMembers((prev) => prev.filter((m) => !selectedMemberIds.includes(m._id)));
+      if (selectedMember && selectedMemberIds.includes(selectedMember._id)) {
+        setSelectedMember(null);
+      }
+      setStatusMessage(`Successfully deleted ${selectedMemberIds.length} member record(s) from MongoDB.`);
+      setTimeout(() => setStatusMessage(null), 4000);
+      setSelectedMemberIds([]);
+      setBulkDeleteModalOpen(false);
+      fetchMembers();
+    } catch (err: any) {
+      alert(`Bulk delete error: ${err.message}`);
     } finally {
       setDeleteLoading(false);
     }
@@ -2654,6 +2688,17 @@ const Admin = ({
                 >
                   <Download size={13} />
                   <span>Export Selected</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBulkDeleteModalOpen(true)}
+                  disabled={bulkActionLoading || deleteLoading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  title={`Delete all ${selectedMemberIds.length} selected members from MongoDB`}
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Selected ({selectedMemberIds.length})</span>
                 </button>
 
                 <button
@@ -4626,6 +4671,74 @@ const Admin = ({
                   <>
                     <Trash2 size={13} />
                     <span>Permanently Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── BULK DELETE CONFIRMATION MODAL ─────────────────────────────────── */}
+      {bulkDeleteModalOpen && selectedMemberIds.length > 0 && (
+        <div
+          className="fixed inset-0 z-[75] bg-black/65 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in overflow-hidden"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteLoading) setBulkDeleteModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl border border-rose-200 shadow-2xl max-w-md w-full p-6 relative animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setBulkDeleteModalOpen(false)}
+              disabled={deleteLoading}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-muted-editorial hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 flex-shrink-0">
+                <Trash2 size={24} />
+              </div>
+              <div>
+                <h3 className="font-serif text-lg font-bold text-ink">Delete Selected Members</h3>
+                <p className="text-xs text-rose-600 font-medium">Permanent Bulk Deletion ({selectedMemberIds.length} Records)</p>
+              </div>
+            </div>
+
+            <div className="bg-rose-50/70 border border-rose-200/80 rounded-xl p-3.5 mb-4 text-xs text-rose-950 space-y-1.5">
+              <p className="font-bold">
+                ⚠️ You are about to permanently delete {selectedMemberIds.length} member records from MongoDB.
+              </p>
+              <p className="text-stone-600 leading-relaxed">
+                This will remove their profile information, generated 2-sided ID cards, and stored photographs from the DigitalOcean server. This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteModalOpen(false)}
+                disabled={deleteLoading}
+                className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeleteMembers}
+                disabled={deleteLoading}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                {deleteLoading ? (
+                  <span>Deleting Records...</span>
+                ) : (
+                  <>
+                    <Trash2 size={13} />
+                    <span>Permanently Delete ({selectedMemberIds.length})</span>
                   </>
                 )}
               </button>

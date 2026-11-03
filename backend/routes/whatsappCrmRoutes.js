@@ -9,6 +9,9 @@ const {
   updateCrmConfig,
   createOrUpdateTemplate,
   deleteTemplate,
+  deleteConversation,
+  bulkDeleteConversations,
+  deleteMessage,
   submitTemplateToMeta,
   syncTemplatesFromMeta,
   createAndLaunchCampaign,
@@ -18,10 +21,19 @@ const {
 // 1. Unified Overview (Dashboard Analytics, Inbox, Leads, Templates, Campaigns, Config)
 router.get("/overview", getCrmOverview);
 
-// 2. WhatsApp Inbox Reply & Live Step/Card Event Tracking
+// 2. WhatsApp & Custom CRM Inbox Reply, Event Tracking & Deletion
 router.post("/inbox/track-event", trackInboxEvent);
 router.post("/inbox/:mobile/reply", sendInboxReply);
 router.post("/inbox/:mobile/mark-read", markConversationRead);
+
+// Conversation & Message Deletion (Individual & Bulk)
+router.delete("/inbox/:mobile/messages/:messageId", deleteMessage);
+router.delete("/conversations/:mobile/messages/:messageId", deleteMessage);
+router.delete("/inbox/:mobile", deleteConversation);
+router.delete("/conversations/:mobile", deleteConversation);
+router.post("/inbox/bulk-delete", bulkDeleteConversations);
+router.post("/conversations/bulk-delete", bulkDeleteConversations);
+router.delete("/conversations/bulk", bulkDeleteConversations);
 
 // 3. Automatic & Manual Lead Assignment (Round-Robin + Manual + Atomic Lock)
 router.post("/leads/assign", assignLeads);

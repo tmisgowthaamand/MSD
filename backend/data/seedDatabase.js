@@ -1,30 +1,43 @@
 /**
- * MongoDB Data Manager & Seeder for Maha Seva Dal (MSD)
+ * MongoDB Live Status & Diagnostic Check for Maha Seva Dal (MSD)
  * Run: node backend/data/seedDatabase.js
+ * Queries live DigitalOcean MongoDB directly (Zero local JSON file persistence)
  */
 const mongoose = require("mongoose");
-const fs = require("fs");
 const path = require("path");
 const Member = require("../models/Member");
+const IncompleteLead = require("../models/IncompleteLead");
+const WhatsAppConversation = require("../models/WhatsAppConversation");
+const Donation = require("../models/Donation");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/msd_database";
-const BACKUP_FILE = path.join(__dirname, "members_mongodb_data.json");
+const MONGODB_URI = process.env.MONGODB_URI;
 
 async function main() {
-  console.log("Connecting to MongoDB:", MONGODB_URI);
+  if (!MONGODB_URI) {
+    console.error("❌ MONGODB_URI is not set in backend/.env");
+    process.exit(1);
+  }
+
+  console.log("Connecting to DigitalOcean MongoDB...");
   await mongoose.connect(MONGODB_URI);
+  console.log("✅ Connected successfully to DB:", mongoose.connection.name);
 
-  const count = await Member.countDocuments();
-  console.log(`Current Members in MongoDB: ${count}`);
+  const [cadresCount, leadsCount, convsCount, donationsCount] = await Promise.all([
+    Member.countDocuments(),
+    IncompleteLead.countDocuments(),
+    WhatsAppConversation.countDocuments(),
+    Donation.countDocuments(),
+  ]);
 
-  // Export current MongoDB data to members_mongodb_data.json
-  const allMembers = await Member.find({}).sort({ createdAt: -1 });
-  fs.writeFileSync(BACKUP_FILE, JSON.stringify(allMembers, null, 2), "utf8");
-  console.log(`✅ Synced ${allMembers.length} records to: ${BACKUP_FILE}`);
+  console.log("\n--- Live DigitalOcean MongoDB Counts ---");
+  console.log(` • Cadres / Members    : ${cadresCount} records`);
+  console.log(` • Incomplete Leads    : ${leadsCount} records`);
+  console.log(` • WhatsApp Chats      : ${convsCount} records`);
+  console.log(` • Donations           : ${donationsCount} records`);
 
   await mongoose.disconnect();
-  console.log("Done.");
+  console.log("\nDone.");
 }
 
 main().catch((err) => {

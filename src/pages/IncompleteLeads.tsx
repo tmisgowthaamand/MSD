@@ -70,6 +70,13 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
   // Data view modal
   const [dataModalLead, setDataModalLead] = useState<IncompleteLead | null>(null);
 
+  // Deletion States
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [leadToDelete, setLeadToDelete] = useState<IncompleteLead | null>(null);
+  const [bulkLeadDeleteOpen, setBulkLeadDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+
   // Load live leads from backend
   const fetchLiveLeads = async () => {
     setIsRefreshing(true);
@@ -225,13 +232,52 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
     link.remove();
   };
 
-  // Action: Delete lead
-  const handleDeleteLead = async (id: string, mobile?: string) => {
-    if (window.confirm("Archive this incomplete registration lead?")) {
-      try {
-        await fetch(getApiUrl(`/api/leads/${id}`), { method: "DELETE" });
-      } catch (e) {}
-      setLeads((prev) => prev.filter((l) => l.id !== id && l.mobile !== mobile));
+  // Action: Open Delete Confirmation Modal
+  const handleDeleteLead = (lead: IncompleteLead) => {
+    setLeadToDelete(lead);
+  };
+
+  // Action: Confirm Individual Lead Deletion from MongoDB
+  const confirmDeleteLead = async () => {
+    if (!leadToDelete) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(getApiUrl(`/api/leads/${leadToDelete.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete lead");
+      setLeads((prev) => prev.filter((l) => l.id !== leadToDelete.id && l.mobile !== leadToDelete.mobile));
+      setSelectedLeadIds((prev) => prev.filter((id) => id !== leadToDelete.id));
+      setDeleteSuccessMsg(`Lead ${leadToDelete.fullName} (+91 ${leadToDelete.mobile}) permanently removed.`);
+      setTimeout(() => setDeleteSuccessMsg(null), 3500);
+      setLeadToDelete(null);
+    } catch (err: any) {
+      alert(`Delete lead error: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Action: Confirm Bulk Lead Deletion from MongoDB
+  const confirmBulkDeleteLeads = async () => {
+    if (selectedLeadIds.length === 0) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(getApiUrl("/api/leads/bulk-delete"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedLeadIds }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to bulk delete leads");
+      setLeads((prev) => prev.filter((l) => !selectedLeadIds.includes(l.id)));
+      setDeleteSuccessMsg(`Successfully deleted ${selectedLeadIds.length} lead record(s) from MongoDB.`);
+      setTimeout(() => setDeleteSuccessMsg(null), 3500);
+      setSelectedLeadIds([]);
+      setBulkLeadDeleteOpen(false);
+    } catch (err: any) {
+      alert(`Bulk delete leads error: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -381,12 +427,64 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
           </div>
         </div>
 
+        {/* Delete Success Alert */}
+        {deleteSuccessMsg && (
+          <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={15} />
+              <span>{deleteSuccessMsg}</span>
+            </div>
+            <button onClick={() => setDeleteSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-950 font-bold cursor-pointer">✕</button>
+          </div>
+        )}
+
+        {/* Bulk Action Bar */}
+        {selectedLeadIds.length > 0 && (
+          <div className="mt-3 bg-amber-50/90 border border-amber-300 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs animate-fade-in">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+              <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[11px] font-bold">
+                {selectedLeadIds.length}
+              </span>
+              <span>{selectedLeadIds.length} lead(s) selected</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBulkLeadDeleteOpen(true)}
+                disabled={deleteLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 size={13} />
+                <span>Delete Selected ({selectedLeadIds.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLeadIds([])}
+                className="text-xs text-stone-600 hover:text-stone-900 px-2 py-1 font-medium cursor-pointer"
+              >
+                Deselect All
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ─── LEADS TABLE ─── */}
         <div className="bg-white rounded-xl border border-stone-200 shadow-2xs overflow-hidden mt-4">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#faf6ee] text-stone-700 font-bold border-b border-stone-200 text-[11px] uppercase tracking-wider">
                 <tr>
+                  <th className="py-3 px-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={filteredLeads.length > 0 && selectedLeadIds.length === filteredLeads.length}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedLeadIds(filteredLeads.map((l) => l.id));
+                        else setSelectedLeadIds([]);
+                      }}
+                      className="rounded border-stone-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3 px-4">Candidate Details</th>
                   <th className="py-3 px-3">Channel</th>
                   <th className="py-3 px-4">Exact Step Left At</th>
@@ -400,6 +498,19 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
                 {filteredLeads.length > 0 ? (
                   filteredLeads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-stone-50/80 transition-colors">
+                      {/* Selection Checkbox */}
+                      <td className="py-3 px-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIds.includes(lead.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedLeadIds((prev) => [...prev, lead.id]);
+                            else setSelectedLeadIds((prev) => prev.filter((id) => id !== lead.id));
+                          }}
+                          className="rounded border-stone-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                      </td>
+
                       {/* Name & Phone */}
                       <td className="py-3 px-4 font-semibold text-stone-900">
                         <div className="text-sm font-bold text-stone-900">{lead.fullName || "Candidate (Unspecified)"}</div>
@@ -533,9 +644,9 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
                             <Eye size={14} />
                           </button>
                           <button
-                            onClick={() => handleDeleteLead(lead.id, lead.mobile)}
-                            className="p-1.5 rounded-lg border border-stone-200 hover:bg-rose-50 text-stone-400 hover:text-rose-600"
-                            title="Archive Lead"
+                            onClick={() => handleDeleteLead(lead)}
+                            className="p-1.5 rounded-lg border border-stone-200 hover:bg-rose-50 text-stone-400 hover:text-rose-600 cursor-pointer"
+                            title="Delete Lead from MongoDB"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -545,7 +656,7 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-stone-500">
+                    <td colSpan={8} className="py-12 text-center text-stone-500">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-2 text-stone-600">
                           <Loader2 size={18} className="animate-spin text-orange-600" />
@@ -680,6 +791,98 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
                   className="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-semibold"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: DELETE INDIVIDUAL LEAD CONFIRMATION ─── */}
+        {leadToDelete && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 className="font-serif text-base font-bold text-stone-900">Delete Incomplete Lead</h3>
+                  <p className="text-xs text-rose-600 font-medium">Permanent Deletion from MongoDB</p>
+                </div>
+              </div>
+
+              <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 mb-4 text-xs space-y-1 font-mono">
+                <div><b>Candidate:</b> {leadToDelete.fullName || "Candidate"}</div>
+                <div><b>Mobile:</b> +91 {leadToDelete.mobile}</div>
+                <div><b>Channel:</b> {leadToDelete.channel}</div>
+                <div><b>Step Left:</b> {leadToDelete.lastStepLabel}</div>
+              </div>
+
+              <p className="text-xs text-stone-500 mb-5 leading-relaxed">
+                Are you sure you want to permanently delete this incomplete registration lead? This will remove all captured drop-off details from MongoDB.
+              </p>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLeadToDelete(null)}
+                  disabled={deleteLoading}
+                  className="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteLead}
+                  disabled={deleteLoading}
+                  className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {deleteLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  <span>Permanently Delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: BULK DELETE LEADS CONFIRMATION ─── */}
+        {bulkLeadDeleteOpen && selectedLeadIds.length > 0 && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 border border-rose-200 animate-scale-up">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 className="font-serif text-base font-bold text-stone-900">Delete Selected Leads</h3>
+                  <p className="text-xs text-rose-600 font-medium">Bulk Deletion ({selectedLeadIds.length} Records)</p>
+                </div>
+              </div>
+
+              <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl mb-4 text-xs text-rose-950">
+                <p className="font-bold">⚠️ Permanently delete {selectedLeadIds.length} lead records from MongoDB?</p>
+                <p className="text-stone-600 mt-1 leading-relaxed">
+                  All partial contact info and drop-off tracking history for these candidates will be permanently removed.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBulkLeadDeleteOpen(false)}
+                  disabled={deleteLoading}
+                  className="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmBulkDeleteLeads}
+                  disabled={deleteLoading}
+                  className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {deleteLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  <span>Permanently Delete ({selectedLeadIds.length})</span>
                 </button>
               </div>
             </div>

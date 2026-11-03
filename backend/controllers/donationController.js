@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const Donation = require("../models/Donation");
 const Member = require("../models/Member");
-const cloudinary = require("../config/cloudinary");
 const crypto = require("crypto");
 const { sendMetaWhatsAppMessage } = require("./whatsappController");
 
@@ -147,34 +148,30 @@ const submitDonation = async (req, res) => {
       resolvedName = `Donor (${cleanMobile.slice(-4)})`;
     }
 
-    // Handle optional screenshot upload
+    const receiptNo = await generateReceiptNo();
+
+    // Handle optional screenshot upload (stored directly on Droplet disk)
     let screenshotUrl = "";
     let screenshotPublicId = "";
 
     if (req.file) {
       try {
-        const result = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              folder: "msd/donations",
-              transformation: [{ width: 1200, crop: "limit", quality: "auto" }],
-            },
-            (error, uploaded) => {
-              if (error) reject(error);
-              else resolve(uploaded);
-            }
-          );
-          uploadStream.end(req.file.buffer);
-        });
+        const donationsDir = path.resolve(__dirname, "../uploads/donations");
+        if (!fs.existsSync(donationsDir)) {
+          fs.mkdirSync(donationsDir, { recursive: true });
+        }
+        const ext = req.file.mimetype.split("/")[1] || "jpg";
+        const filename = `${receiptNo.replace(/[^a-zA-Z0-9_-]/g, "_")}_screenshot.${ext}`;
+        const filePath = path.join(donationsDir, filename);
+        fs.writeFileSync(filePath, req.file.buffer);
 
-        screenshotUrl = result.secure_url;
-        screenshotPublicId = result.public_id;
+        const baseUrl = process.env.STORAGE_BASE_URL || "https://mahasevadal.com";
+        screenshotUrl = `${baseUrl}/uploads/donations/${filename}`;
+        screenshotPublicId = `do_${filename}`;
       } catch (uploadErr) {
         console.warn("Screenshot upload warning:", uploadErr.message);
       }
     }
-
-    const receiptNo = await generateReceiptNo();
 
     const newDonation = new Donation({
       receiptNo,
@@ -412,10 +409,28 @@ const bulkUpdateDonationStatus = async (req, res) => {
 const deleteDonation = async (req, res) => {
   try {
     const { id } = req.params;
-    const donation = await Donation.findByIdAndDelete(id);
+    const donation = mongoose.Types.ObjectId.isValid(id)
+      ? await Donation.findByIdAndDelete(id)
+      : await Donation.findOneAndDelete({ receiptNo: id });
+
     if (!donation) {
       return res.status(404).json({ error: "Donation record not found." });
     }
+
+    // Clean up screenshot if stored on disk
+    if (donation.screenshotUrl) {
+      try {
+        const filename = path.basename(new URL(donation.screenshotUrl).pathname);
+        const filePath = path.resolve(__dirname, `../uploads/donations/${filename}`);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (err) {}
+    }
+
+    // Pull from cadre record if embedded
+    await Member.updateMany(
+      { "donations.receiptNo": donation.receiptNo },
+      { $pull: { donations: { receiptNo: donation.receiptNo } } }
+    ).catch(() => {});
 
     return res.status(200).json({
       success: true,
@@ -424,6 +439,52 @@ const deleteDonation = async (req, res) => {
   } catch (error) {
     console.error("Delete Donation Error:", error);
     return res.status(500).json({ error: error.message || "Failed to delete donation." });
+  }
+};
+
+// Admin: Bulk delete donations
+const bulkDeleteDonations = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "No donation IDs provided." });
+    }
+
+    const objectIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    const donationsToDelete = await Donation.find({
+      $or: [{ _id: { $in: objectIds } }, { receiptNo: { $in: ids } }],
+    }).lean();
+
+    for (const d of donationsToDelete) {
+      if (d.screenshotUrl) {
+        try {
+          const filename = path.basename(new URL(d.screenshotUrl).pathname);
+          const filePath = path.resolve(__dirname, `../uploads/donations/${filename}`);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        } catch (err) {}
+      }
+    }
+
+    const receiptNos = donationsToDelete.map((d) => d.receiptNo).filter(Boolean);
+    if (receiptNos.length > 0) {
+      await Member.updateMany(
+        { "donations.receiptNo": { $in: receiptNos } },
+        { $pull: { donations: { receiptNo: { $in: receiptNos } } } }
+      ).catch(() => {});
+    }
+
+    const deleteResult = await Donation.deleteMany({
+      $or: [{ _id: { $in: objectIds } }, { receiptNo: { $in: ids } }],
+    });
+
+    return res.status(200).json({
+      success: true,
+      deletedCount: deleteResult.deletedCount,
+      message: `Successfully deleted ${deleteResult.deletedCount} donation record(s).`,
+    });
+  } catch (error) {
+    console.error("Bulk Delete Donations Error:", error);
+    return res.status(500).json({ error: error.message || "Failed to bulk delete donations." });
   }
 };
 
@@ -486,6 +547,7 @@ module.exports = {
   updateDonationStatus,
   bulkUpdateDonationStatus,
   deleteDonation,
+  bulkDeleteDonations,
   exportDonationsJson,
   verifyDonationQuery,
   formatWhatsAppReceipt,

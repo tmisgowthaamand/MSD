@@ -36,3 +36,14 @@ backend/data/members_mongodb_data.json
 backend/data/card_settings.json
 vite.config.ts.timestamp-*
 
+# Uploaded member media and generated ID cards (stored locally / on droplet disk)
+backend/uploads/photos/*
+!backend/uploads/photos/.gitkeep
+backend/uploads/cards/*
+!backend/uploads/cards/.gitkeep
+backend/uploads/general/*
+!backend/uploads/general/.gitkeep
+backend/uploads/donations/*
+!backend/uploads/donations/.gitkeep
+
+

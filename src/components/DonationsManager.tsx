@@ -25,6 +25,8 @@ import {
   User,
   Calendar,
   Sparkles,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { getApiUrl } from "@/config/api";
 
@@ -295,6 +297,64 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
     setTimeout(() => setCopiedReceiptText(false), 2500);
   };
 
+  // Deletion States
+  const [selectedDonationIds, setSelectedDonationIds] = useState<string[]>([]);
+  const [donationToDelete, setDonationToDelete] = useState<Donation | null>(null);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Confirm Single Donation Delete from MongoDB
+  const confirmDeleteDonation = async () => {
+    if (!donationToDelete || !token) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(getApiUrl(`/api/donations/admin/${donationToDelete._id}`), {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete donation");
+      setDonations((prev) => prev.filter((d) => d._id !== donationToDelete._id));
+      setSelectedDonationIds((prev) => prev.filter((id) => id !== donationToDelete._id));
+      setStatusMessage(`Donation ${donationToDelete.receiptNo} permanently deleted from MongoDB.`);
+      setTimeout(() => setStatusMessage(null), 3500);
+      setDonationToDelete(null);
+      fetchDonations(page);
+    } catch (err: any) {
+      alert(`Delete error: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Confirm Bulk Donation Delete from MongoDB
+  const confirmBulkDeleteDonations = async () => {
+    if (selectedDonationIds.length === 0 || !token) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(getApiUrl("/api/donations/admin/bulk-delete"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: selectedDonationIds }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to bulk delete donations");
+      setDonations((prev) => prev.filter((d) => !selectedDonationIds.includes(d._id)));
+      setStatusMessage(`Successfully deleted ${selectedDonationIds.length} donation record(s) from MongoDB.`);
+      setTimeout(() => setStatusMessage(null), 3500);
+      setSelectedDonationIds([]);
+      setBulkDeleteOpen(false);
+      fetchDonations(1);
+    } catch (err: any) {
+      alert(`Bulk delete error: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // Export JSON
   const handleExportJson = () => {
     window.open(getApiUrl(`/api/donations/admin/export-json?token=${encodeURIComponent(token)}`), "_blank");
@@ -537,11 +597,52 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
           </div>
         )}
 
+        {/* Bulk Action Bar */}
+        {selectedDonationIds.length > 0 && (
+          <div className="bg-amber-50/90 border border-amber-300 rounded-xl px-4 py-2.5 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs animate-fade-in">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+              <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[11px] font-bold">
+                {selectedDonationIds.length}
+              </span>
+              <span>{selectedDonationIds.length} donation(s) selected</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(true)}
+                disabled={deleteLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 size={13} />
+                <span>Delete Selected ({selectedDonationIds.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDonationIds([])}
+                className="text-xs text-stone-600 hover:text-stone-900 px-2 py-1 font-medium cursor-pointer"
+              >
+                Deselect All
+              </button>
+            </div>
+          </div>
+        )}
+
         {!loading && !error && donations.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-surface-soft/80 border-b border-hairline text-stone-500 uppercase font-mono text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={donations.length > 0 && selectedDonationIds.length === donations.length}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedDonationIds(donations.map((d) => d._id));
+                        else setSelectedDonationIds([]);
+                      }}
+                      className="rounded border-stone-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-2.5 px-3">Receipt / Date</th>
                   <th className="py-2.5 px-3">Donor & Identity</th>
                   <th className="py-2.5 px-3">Amount</th>
@@ -562,6 +663,19 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
                       key={d._id}
                       className="hover:bg-amber-50/20 transition-colors group"
                     >
+                      {/* Selection Checkbox */}
+                      <td className="py-2.5 px-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedDonationIds.includes(d._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedDonationIds((prev) => [...prev, d._id]);
+                            else setSelectedDonationIds((prev) => prev.filter((id) => id !== d._id));
+                          }}
+                          className="rounded border-stone-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                      </td>
+
                       {/* Receipt & Date */}
                       <td className="py-2.5 px-3">
                         <div className="font-mono font-bold text-ink flex items-center gap-1">
@@ -723,6 +837,16 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
                               Re-verify
                             </button>
                           )}
+
+                          <button
+                            type="button"
+                            disabled={actionLoadingId === d._id || deleteLoading}
+                            onClick={() => setDonationToDelete(d)}
+                            className="p-1.5 rounded-lg border border-stone-200 hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition-colors cursor-pointer"
+                            title={`Delete Donation ${d.receiptNo}`}
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -922,6 +1046,109 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
                 className="text-xs px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-2xs"
               >
                 Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE DONATION CONFIRMATION MODAL ── */}
+      {donationToDelete && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteLoading) setDonationToDelete(null);
+          }}
+        >
+          <div className="bg-white rounded-2xl border border-rose-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-scale-up">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-ink">Delete Donation Record</h3>
+                <p className="text-xs text-rose-600 font-medium">Permanent Deletion from MongoDB</p>
+              </div>
+            </div>
+
+            <div className="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs space-y-1 font-mono">
+              <div><b>Receipt No:</b> {donationToDelete.receiptNo}</div>
+              <div><b>Donor:</b> {donationToDelete.donorName}</div>
+              <div><b>Amount:</b> ₹{Number(donationToDelete.amount).toLocaleString("en-IN")}</div>
+              <div><b>UTR:</b> {donationToDelete.utr}</div>
+              <div><b>Status:</b> {donationToDelete.status}</div>
+            </div>
+
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Are you sure you want to permanently delete this donation record? This will remove the receipt entry, accounting ledger logs, and stored proof screenshots from MongoDB.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
+              <button
+                type="button"
+                onClick={() => setDonationToDelete(null)}
+                disabled={deleteLoading}
+                className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteDonation}
+                disabled={deleteLoading}
+                className="text-xs px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {deleteLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Permanently Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BULK DELETE DONATIONS CONFIRMATION MODAL ── */}
+      {bulkDeleteOpen && selectedDonationIds.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteLoading) setBulkDeleteOpen(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl border border-rose-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-scale-up">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-ink">Delete Selected Donations</h3>
+                <p className="text-xs text-rose-600 font-medium">Bulk Deletion ({selectedDonationIds.length} Records)</p>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-950">
+              <p className="font-bold">⚠️ Permanently delete {selectedDonationIds.length} donation records from MongoDB?</p>
+              <p className="text-stone-600 mt-1 leading-relaxed">
+                All receipts, ledger entries, and stored verification screenshots for these contributions will be permanently removed.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={deleteLoading}
+                className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-lg cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeleteDonations}
+                disabled={deleteLoading}
+                className="text-xs px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {deleteLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span>Permanently Delete ({selectedDonationIds.length})</span>
               </button>
             </div>
           </div>
