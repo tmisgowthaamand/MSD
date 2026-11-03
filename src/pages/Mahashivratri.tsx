@@ -47,6 +47,7 @@ const msdPillars = [
 const Mahashivratri = () => {
   const [showGallery, setShowGallery] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
 
   return (
     <PageLayout>
@@ -148,19 +149,24 @@ const Mahashivratri = () => {
 
             {showGallery && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 animate-fade-in">
-                {mahaImages.map((imgUrl, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-lg overflow-hidden border border-hairline bg-surface-card aspect-square cursor-pointer group"
-                    onClick={() => setSelectedImage(imgUrl)}
-                  >
-                    <img
-                      src={imgUrl}
-                      alt={`Mahashivratri moment ${idx + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ))}
+                {mahaImages.map((imgUrl, idx) => {
+                  if (failedImages[idx]) return null;
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-lg overflow-hidden border border-hairline bg-surface-card aspect-square cursor-pointer group"
+                      onClick={() => setSelectedImage(imgUrl)}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`Mahashivratri moment ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        onError={() => setFailedImages((prev) => ({ ...prev, [idx]: true }))}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
