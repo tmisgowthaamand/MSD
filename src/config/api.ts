@@ -1,6 +1,7 @@
 /**
  * Central API Configuration for Maha Seva Dal
- * Configured dynamically via VITE_API_URL environment variable.
+ * Resolves to same-origin relative URLs ("") in production behind Nginx reverse-proxy,
+ * or explicit VITE_API_URL if configured, and localhost in local development.
  */
 
 const rawApiUrl = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
@@ -9,16 +10,28 @@ export const resolveApiBaseUrl = (
   envUrl: string = rawApiUrl,
   isDev: boolean = Boolean(import.meta.env.DEV)
 ): string => {
+  // 1. If running in browser on a production domain (not localhost / 127.0.0.1),
+  // always use relative paths ("") so Nginx proxies /api/ seamlessly without CORS or mixed content.
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname.toLowerCase();
+    if (host !== "localhost" && host !== "127.0.0.1" && host !== "::1") {
+      return "";
+    }
+  }
+
+  // 2. In production builds, never allow a localhost URL to be used in client browsers
+  if (!isDev && envUrl && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+    return "";
+  }
+
   if (envUrl) {
     return envUrl.replace(/\/+$/, "");
   }
+
   if (isDev) {
     return "http://localhost:5000";
   }
-  // In production, missing VITE_API_URL is an explicit configuration error
-  const errorMsg =
-    "[Configuration Error] VITE_API_URL environment variable is not defined. Please set VITE_API_URL in your hosting environment (DigitalOcean App Platform) build settings.";
-  console.error(errorMsg);
+
   return "";
 };
 
@@ -26,9 +39,6 @@ export const API_BASE_URL = resolveApiBaseUrl();
 
 export const getApiUrl = (endpoint: string): string => {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  if (!API_BASE_URL && !import.meta.env.DEV) {
-    console.error(`Cannot call ${cleanEndpoint}: VITE_API_URL is not configured.`);
-  }
-  return `${API_BASE_URL}${cleanEndpoint}`;
+  const base = resolveApiBaseUrl();
+  return `${base}${cleanEndpoint}`;
 };
-
