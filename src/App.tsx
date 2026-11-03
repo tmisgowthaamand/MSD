@@ -17,6 +17,8 @@ import Appointment from "./pages/Appointment";
 import Support from "./pages/Support";
 import Register from "./pages/Register";
 import Admin from "./pages/Admin";
+import FlowSimulator from "./pages/FlowSimulator";
+import IncompleteLeads from "./pages/IncompleteLeads";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import NotFound from "./pages/NotFound";
@@ -51,12 +53,17 @@ const App = () => (
           <Route path="/status" element={<Register defaultTab="status" />} />
           <Route path="/verify" element={<Register defaultTab="status" />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/flow-simulator" element={<Admin defaultTab="simulator" />} />
+          <Route path="/admin/flow_simulator" element={<Admin defaultTab="simulator" />} />
+          <Route path="/admin/incomplete-leads" element={<Admin defaultTab="leads" />} />
+          <Route path="/admin/incomplete_leads" element={<Admin defaultTab="leads" />} />
           {/* Legal: Privacy Policy & Terms of Service */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsConditions />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -2,8 +2,11 @@ const express = require("express");
 const multer = require("multer");
 const {
   registerMember,
+  checkMobileExists,
   getAllMembers,
   updateMemberStatus,
+  bulkUpdateMemberStatus,
+  resubmitMemberPhoto,
   deleteMember,
   exportMembersJson,
   adminLogin,
@@ -59,6 +62,8 @@ const statusCheckLimiter = rateLimit({
 
 // ─── Public Member Registration & Status Verification ───
 router.post("/register", upload.single("photo"), registerMember);
+router.post("/resubmit-photo", upload.single("photo"), resubmitMemberPhoto);
+router.get("/check-mobile", checkMobileExists);
 router.get("/status", statusCheckLimiter, checkMemberStatus);
 router.get("/proxy-photo", proxyPhoto);
 router.get("/card-settings", getCardSettings);
@@ -70,6 +75,7 @@ router.get("/admin/verify", verifyToken, verifyAdminToken);
 // ─── Admin Member Management (Protected) ───
 router.get("/admin/all", verifyToken, getAllMembers);
 router.get("/admin/export-json", verifyToken, exportMembersJson);
+router.patch("/admin/bulk-status", verifyToken, bulkUpdateMemberStatus);
 router.patch("/admin/:id/status", verifyToken, updateMemberStatus);
 router.put("/admin/:id/status", verifyToken, updateMemberStatus);
 router.delete("/admin/:id", verifyToken, deleteMember);

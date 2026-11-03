@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useMemo } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/PageHeader";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import QRCode from "qrcode";
 import DigitalIdCard from "@/components/DigitalIdCard";
 import { getApiUrl } from "@/config/api";
+import { logActivity } from "@/utils/activityLogger";
 import {
   User,
   MapPin,
@@ -37,865 +38,311 @@ import {
   Crop,
   Trash2,
   Calendar,
+  Camera,
   Edit3,
+  X,
+  Loader2,
+  Info,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import ImageCropModal from "@/components/ImageCropModal";
 
-const INDIAN_STATES = [
-  "Andaman and Nicobar Islands",
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chandigarh",
-  "Chhattisgarh",
-  "Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jammu and Kashmir",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Ladakh",
-  "Lakshadweep",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Puducherry",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
+import {
+  INDIAN_STATES,
+  STATE_DISTRICTS,
+  DISTRICT_ASSEMBLIES,
+  DISTRICT_ZONES,
+  STATE_ZONES,
+  getAssembliesForDistrict,
+  getZonesForDistrict,
+  getDefaultZoneForDistrict,
+  getDefaultZoneForState,
+} from "@/data/indiaLocations";
+export {
+  INDIAN_STATES,
+  STATE_DISTRICTS,
+  DISTRICT_ASSEMBLIES,
+  DISTRICT_ZONES,
+  STATE_ZONES,
+  getAssembliesForDistrict,
+  getZonesForDistrict,
+  getDefaultZoneForDistrict,
+  getDefaultZoneForState,
+};
+
+export const ASSEMBLY_OPTIONS = [
+  "Thiyagarayanagar",
+  "Mylapore",
+  "Chepauk-Thiruvallikeni",
+  "Anna Nagar",
+  "Saidapet",
+  "Velachery",
+  "Royapuram",
+  "Harbour",
+  "Villivakkam",
+  "Kolathur",
+  "Virugambakkam",
+  "Alandur",
+  "Tambaram",
+  "Pallavaram",
+  "Sholinganallur",
+  "Ambattur",
+  "Maduravoyal",
+  "Avadi",
+  "Poonamallee",
+  "Tiruvallur",
+  "Kanchipuram",
+  "Chengalpattu",
+  "Coimbatore South",
+  "Coimbatore North",
+  "Singanallur",
+  "Madurai Central",
+  "Madurai North",
+  "Madurai South",
+  "Tiruchirappalli East",
+  "Tiruchirappalli West",
+  "Salem North",
+  "Salem South",
+  "Tirunelveli",
+  "Erode East",
+  "Vellore",
+  "Other Assembly",
 ];
 
-const STATE_DISTRICTS: Record<string, string[]> = {
-  Karnataka: [
-    "Bagalkot",
-    "Ballari",
-    "Belagavi",
-    "Bengaluru Rural",
-    "Bengaluru Urban",
-    "Bidar",
-    "Chamarajanagar",
-    "Chikkaballapur",
-    "Chikkamagaluru",
-    "Chitradurga",
-    "Dakshina Kannada",
-    "Davanagere",
-    "Dharwad",
-    "Gadag",
-    "Hassan",
-    "Haveri",
-    "Kalaburagi",
-    "Kodagu",
-    "Kolar",
-    "Koppal",
-    "Mandya",
-    "Mysuru",
-    "Raichur",
-    "Ramanagara",
-    "Shivamogga",
-    "Tumakuru",
-    "Udupi",
-    "Uttara Kannada",
-    "Vijayapura",
-    "Vijayanagara",
-    "Yadgir",
-    "Other District",
-  ],
-  "Tamil Nadu": [
-    "Ariyalur",
-    "Chengalpattu",
-    "Chennai",
-    "Coimbatore",
-    "Cuddalore",
-    "Dharmapuri",
-    "Dindigul",
-    "Erode",
-    "Kallakurichi",
-    "Kancheepuram",
-    "Kanniyakumari",
-    "Karur",
-    "Krishnagiri",
-    "Madurai",
-    "Mayiladuthurai",
-    "Nagapattinam",
-    "Namakkal",
-    "Nilgiris",
-    "Perambalur",
-    "Pudukkottai",
-    "Ramanathapuram",
-    "Ranipet",
-    "Salem",
-    "Sivaganga",
-    "Tenkasi",
-    "Thanjavur",
-    "Theni",
-    "Thoothukudi",
-    "Tiruchirappalli",
-    "Tirunelveli",
-    "Tirupathur",
-    "Tiruppur",
-    "Tiruvallur",
-    "Tiruvannamalai",
-    "Tiruvarur",
-    "Vellore",
-    "Viluppuram",
-    "Virudhunagar",
-    "Other District",
-  ],
-  Telangana: [
-    "Adilabad",
-    "Bhadradri Kothagudem",
-    "Hanamkonda",
-    "Hyderabad",
-    "Jagtial",
-    "Jangaon",
-    "Jayashankar Bhupalpally",
-    "Jogulamba Gadwal",
-    "Kamareddy",
-    "Karimnagar",
-    "Khammam",
-    "Kumuram Bheem Asifabad",
-    "Mahabubabad",
-    "Mahabubnagar",
-    "Mancherial",
-    "Medak",
-    "Medchal-Malkajgiri",
-    "Mulugu",
-    "Nagarkurnool",
-    "Nalgonda",
-    "Narayanpet",
-    "Nirmal",
-    "Nizamabad",
-    "Peddapalli",
-    "Rajanna Sircilla",
-    "Ranga Reddy",
-    "Sangareddy",
-    "Siddipet",
-    "Suryapet",
-    "Vikarabad",
-    "Wanaparthy",
-    "Warangal",
-    "Yadadri Bhuvanagiri",
-    "Other District",
-  ],
-  "Andhra Pradesh": [
-    "Alluri Sitharama Raju",
-    "Anakapalli",
-    "Ananthapuramu",
-    "Annamayya",
-    "Bapatla",
-    "Chittoor",
-    "Dr. B.R. Ambedkar Konaseema",
-    "East Godavari",
-    "Eluru",
-    "Guntur",
-    "Kakinada",
-    "Krishna",
-    "Kurnool",
-    "Nandyal",
-    "NTR",
-    "Palnadu",
-    "Parvathipuram Manyam",
-    "Prakasam",
-    "Sri Potti Sriramulu Nellore",
-    "Sri Sathya Sai",
-    "Srikakulam",
-    "Tirupati",
-    "Visakhapatnam",
-    "Vizianagaram",
-    "West Godavari",
-    "YSR Kadapa",
-    "Other District",
-  ],
-  Jharkhand: [
-    "Bokaro",
-    "Chatra",
-    "Deoghar",
-    "Dhanbad",
-    "Dumka",
-    "East Singhbhum",
-    "Garhwa",
-    "Giridih",
-    "Godda",
-    "Gumla",
-    "Hazaribagh",
-    "Jamtara",
-    "Khunti",
-    "Koderma",
-    "Latehar",
-    "Lohardaga",
-    "Pakur",
-    "Palamu",
-    "Ramgarh",
-    "Ranchi",
-    "Sahebganj",
-    "Seraikela Kharsawan",
-    "Simdega",
-    "West Singhbhum",
-    "Other District",
-  ],
-  Maharashtra: [
-    "Ahmednagar",
-    "Akola",
-    "Amravati",
-    "Beed",
-    "Bhandara",
-    "Buldhana",
-    "Chandrapur",
-    "Chhatrapati Sambhajinagar",
-    "Dharashiv",
-    "Dhule",
-    "Gadchiroli",
-    "Gondia",
-    "Hingoli",
-    "Jalgaon",
-    "Jalna",
-    "Kolhapur",
-    "Latur",
-    "Mumbai City",
-    "Mumbai Suburban",
-    "Nagpur",
-    "Nanded",
-    "Nandurbar",
-    "Nashik",
-    "Palghar",
-    "Parbhani",
-    "Pune",
-    "Raigad",
-    "Ratnagiri",
-    "Sangli",
-    "Satara",
-    "Sindhudurg",
-    "Solapur",
-    "Thane",
-    "Wardha",
-    "Washim",
-    "Yavatmal",
-    "Other District",
-  ],
-  Kerala: [
-    "Alappuzha",
-    "Ernakulam",
-    "Idukki",
-    "Kannur",
-    "Kasaragod",
-    "Kollam",
-    "Kottayam",
-    "Kozhikode",
-    "Malappuram",
-    "Palakkad",
-    "Pathanamthitta",
-    "Thiruvananthapuram",
-    "Thrissur",
-    "Wayanad",
-    "Other District",
-  ],
-  Delhi: [
-    "Central Delhi",
-    "East Delhi",
-    "New Delhi",
-    "North Delhi",
-    "North East Delhi",
-    "North West Delhi",
-    "Shahdara",
-    "South Delhi",
-    "South East Delhi",
-    "South West Delhi",
-    "West Delhi",
-    "Other District",
-  ],
-  "Uttar Pradesh": [
-    "Agra",
-    "Aligarh",
-    "Ayodhya",
-    "Azamgarh",
-    "Bareilly",
-    "Basti",
-    "Bijnor",
-    "Bulandshahr",
-    "Chandauli",
-    "Deoria",
-    "Etah",
-    "Etawah",
-    "Farrukhabad",
-    "Fatehpur",
-    "Firozabad",
-    "Gautam Buddha Nagar (Noida)",
-    "Ghaziabad",
-    "Gorakhpur",
-    "Jhansi",
-    "Kanpur Nagar",
-    "Lucknow",
-    "Mathura",
-    "Meerut",
-    "Mirzapur",
-    "Moradabad",
-    "Muzaffarnagar",
-    "Prayagraj",
-    "Raebareli",
-    "Saharanpur",
-    "Shahjahanpur",
-    "Sitapur",
-    "Sonbhadra",
-    "Sultanpur",
-    "Unnao",
-    "Varanasi",
-    "Other District",
-  ],
-  Bihar: [
-    "Araria",
-    "Arwal",
-    "Aurangabad",
-    "Banka",
-    "Begusarai",
-    "Bhagalpur",
-    "Bhojpur",
-    "Buxar",
-    "Darbhanga",
-    "East Champaran",
-    "Gaya",
-    "Gopalganj",
-    "Jamui",
-    "Jehanabad",
-    "Kaimur",
-    "Katihar",
-    "Khagaria",
-    "Kishanganj",
-    "Lakhisarai",
-    "Madhepura",
-    "Madhubani",
-    "Munger",
-    "Muzaffarpur",
-    "Nalanda",
-    "Nawada",
-    "Patna",
-    "Purnia",
-    "Rohtas",
-    "Saharsa",
-    "Samastipur",
-    "Saran",
-    "Sheikhpura",
-    "Sheohar",
-    "Sitamarhi",
-    "Siwan",
-    "Supaul",
-    "Vaishali",
-    "West Champaran",
-    "Other District",
-  ],
-  Gujarat: [
-    "Ahmedabad",
-    "Amreli",
-    "Anand",
-    "Aravalli",
-    "Banaskantha",
-    "Bharuch",
-    "Bhavnagar",
-    "Botad",
-    "Chhota Udaipur",
-    "Dahod",
-    "Dang",
-    "Devbhoomi Dwarka",
-    "Gandhinagar",
-    "Gir Somnath",
-    "Jamnagar",
-    "Junagadh",
-    "Kheda",
-    "Kutch",
-    "Mahisagar",
-    "Mehsana",
-    "Morbi",
-    "Narmada",
-    "Navsari",
-    "Panchmahal",
-    "Patan",
-    "Porbandar",
-    "Rajkot",
-    "Sabarkantha",
-    "Surat",
-    "Surendranagar",
-    "Tapi",
-    "Vadodara",
-    "Valsad",
-    "Other District",
-  ],
-  Rajasthan: [
-    "Ajmer",
-    "Alwar",
-    "Banswara",
-    "Baran",
-    "Barmer",
-    "Bharatpur",
-    "Bhilwara",
-    "Bikaner",
-    "Bundi",
-    "Chittorgarh",
-    "Churu",
-    "Dausa",
-    "Dholpur",
-    "Dungarpur",
-    "Hanumangarh",
-    "Jaipur",
-    "Jaisalmer",
-    "Jalore",
-    "Jhalawar",
-    "Jhunjhunu",
-    "Jodhpur",
-    "Kota",
-    "Nagaur",
-    "Pali",
-    "Pratapgarh",
-    "Rajsamand",
-    "Sawai Madhopur",
-    "Sikar",
-    "Sirohi",
-    "Sri Ganganagar",
-    "Tonk",
-    "Udaipur",
-    "Other District",
-  ],
-  Punjab: [
-    "Amritsar",
-    "Barnala",
-    "Bathinda",
-    "Faridkot",
-    "Fatehgarh Sahib",
-    "Fazilka",
-    "Ferozepur",
-    "Gurdaspur",
-    "Hoshiarpur",
-    "Jalandhar",
-    "Kapurthala",
-    "Ludhiana",
-    "Malerkotla",
-    "Mansa",
-    "Moga",
-    "Muktsar",
-    "Pathankot",
-    "Patiala",
-    "Rupnagar",
-    "Sangrur",
-    "SAS Nagar (Mohali)",
-    "SBS Nagar",
-    "Tarn Taran",
-    "Other District",
-  ],
-  Haryana: [
-    "Ambala",
-    "Bhiwani",
-    "Charkhi Dadri",
-    "Faridabad",
-    "Fatehabad",
-    "Gurugram",
-    "Hisar",
-    "Jhajjar",
-    "Jind",
-    "Kaithal",
-    "Karnal",
-    "Kurukshetra",
-    "Mahendragarh",
-    "Nuh",
-    "Palwal",
-    "Panchkula",
-    "Panipat",
-    "Rewari",
-    "Rohtak",
-    "Sirsa",
-    "Sonipat",
-    "Yamunanagar",
-    "Other District",
-  ],
-  Odisha: [
-    "Angul",
-    "Balangir",
-    "Balasore",
-    "Bargarh",
-    "Bhadrak",
-    "Boudh",
-    "Cuttack",
-    "Deogarh",
-    "Dhenkanal",
-    "Gajapati",
-    "Ganjam",
-    "Jagatsinghpur",
-    "Jajpur",
-    "Jharsuguda",
-    "Kalahandi",
-    "Kandhamal",
-    "Kendrapara",
-    "Kendujhar",
-    "Khordha (Bhubaneswar)",
-    "Koraput",
-    "Malkangiri",
-    "Mayurbhanj",
-    "Nabarangpur",
-    "Nayagarh",
-    "Nuapada",
-    "Puri",
-    "Rayagada",
-    "Sambalpur",
-    "Subarnapur",
-    "Sundargarh",
-    "Other District",
-  ],
-  "West Bengal": [
-    "Alipurduar",
-    "Bankura",
-    "Birbhum",
-    "Cooch Behar",
-    "Dakshin Dinajpur",
-    "Darjeeling",
-    "Hooghly",
-    "Howrah",
-    "Jalpaiguri",
-    "Jhargram",
-    "Kalimpong",
-    "Kolkata",
-    "Malda",
-    "Murshidabad",
-    "Nadia",
-    "North 24 Parganas",
-    "Paschim Bardhaman",
-    "Paschim Medinipur",
-    "Purba Bardhaman",
-    "Purba Medinipur",
-    "Purulia",
-    "South 24 Parganas",
-    "Uttar Dinajpur",
-    "Other District",
-  ],
-  Assam: [
-    "Baksa",
-    "Barpeta",
-    "Biswanath",
-    "Bongaigaon",
-    "Cachar",
-    "Charaideo",
-    "Chirang",
-    "Darrang",
-    "Dhemaji",
-    "Dhubri",
-    "Dibrugarh",
-    "Goalpara",
-    "Golaghat",
-    "Hailakandi",
-    "Hojai",
-    "Jorhat",
-    "Kamrup",
-    "Kamrup Metropolitan (Guwahati)",
-    "Karbi Anglong",
-    "Karimganj",
-    "Kokrajhar",
-    "Lakhimpur",
-    "Majuli",
-    "Morigaon",
-    "Nagaon",
-    "Nalbari",
-    "Sivasagar",
-    "Sonitpur",
-    "Tinsukia",
-    "Udalguri",
-    "Other District",
-  ],
-  "Madhya Pradesh": [
-    "Agar Malwa",
-    "Alirajpur",
-    "Anuppur",
-    "Ashoknagar",
-    "Balaghat",
-    "Barwani",
-    "Betul",
-    "Bhind",
-    "Bhopal",
-    "Burhanpur",
-    "Chhatarpur",
-    "Chhindwara",
-    "Damoh",
-    "Datia",
-    "Dewas",
-    "Dhar",
-    "Dindori",
-    "Guna",
-    "Gwalior",
-    "Harda",
-    "Hoshangabad (Narmadapuram)",
-    "Indore",
-    "Jabalpur",
-    "Jhabua",
-    "Katni",
-    "Khandwa",
-    "Khargone",
-    "Mandla",
-    "Mandsaur",
-    "Morena",
-    "Narsinghpur",
-    "Neemuch",
-    "Panna",
-    "Raisen",
-    "Rajgarh",
-    "Ratlam",
-    "Rewa",
-    "Sagar",
-    "Satna",
-    "Sehore",
-    "Seoni",
-    "Shahdol",
-    "Shajapur",
-    "Sheopur",
-    "Shivpuri",
-    "Sidhi",
-    "Singrauli",
-    "Tikamgarh",
-    "Ujjain",
-    "Umaria",
-    "Vidisha",
-    "Other District",
-  ],
-  Chhattisgarh: [
-    "Balod",
-    "Baloda Bazar",
-    "Balrampur",
-    "Bastar (Jagdalpur)",
-    "Bemetara",
-    "Bijapur",
-    "Bilaspur",
-    "Dantewada",
-    "Dhamtari",
-    "Durg",
-    "Gariaband",
-    "Gaurela Pendra Marwahi",
-    "Janjgir Champa",
-    "Jashpur",
-    "Kabirdham (Kawardha)",
-    "Kanker",
-    "Khairagarh",
-    "Kondagaon",
-    "Korba",
-    "Koriya",
-    "Mahasamund",
-    "Manendragarh",
-    "Mohla Manpur",
-    "Mungeli",
-    "Narayanpur",
-    "Raigarh",
-    "Raipur",
-    "Rajnandgaon",
-    "Sarangarh Bilaigarh",
-    "Sakti",
-    "Sukma",
-    "Surajpur",
-    "Surguja (Ambikapur)",
-    "Other District",
-  ],
-  Uttarakhand: [
-    "Almora",
-    "Bageshwar",
-    "Chamoli",
-    "Champawat",
-    "Dehradun",
-    "Haridwar",
-    "Nainital",
-    "Pauri Garhwal",
-    "Pithoragarh",
-    "Rudraprayag",
-    "Tehri Garhwal",
-    "Udham Singh Nagar",
-    "Uttarkashi",
-    "Other District",
-  ],
-  "Himachal Pradesh": [
-    "Bilaspur",
-    "Chamba",
-    "Hamirpur",
-    "Kangra (Dharamshala)",
-    "Kinnaur",
-    "Kullu",
-    "Lahaul and Spiti",
-    "Mandi",
-    "Shimla",
-    "Sirmaur",
-    "Solan",
-    "Una",
-    "Other District",
-  ],
-  "Jammu and Kashmir": [
-    "Anantnag",
-    "Bandipora",
-    "Baramulla",
-    "Budgam",
-    "Doda",
-    "Ganderbal",
-    "Jammu",
-    "Kathua",
-    "Kishtwar",
-    "Kulgam",
-    "Kupwara",
-    "Poonch",
-    "Pulwama",
-    "Rajouri",
-    "Ramban",
-    "Reasi",
-    "Samba",
-    "Shopian",
-    "Srinagar",
-    "Udhampur",
-    "Other District",
-  ],
-  Ladakh: ["Kargil", "Leh", "Other District"],
-  Goa: ["North Goa", "South Goa", "Other District"],
-  Manipur: [
-    "Bishnupur",
-    "Chandel",
-    "Churachandpur",
-    "Imphal East",
-    "Imphal West",
-    "Jiribam",
-    "Kakching",
-    "Kamjong",
-    "Kangpokpi",
-    "Noney",
-    "Pherzawl",
-    "Senapati",
-    "Tamenglong",
-    "Tengnoupal",
-    "Thoubal",
-    "Ukhrul",
-    "Other District",
-  ],
-  Meghalaya: [
-    "East Garo Hills",
-    "East Jaintia Hills",
-    "East Khasi Hills (Shillong)",
-    "Eastern West Khasi Hills",
-    "North Garo Hills",
-    "Ri-Bhoi",
-    "South Garo Hills",
-    "South West Garo Hills",
-    "South West Khasi Hills",
-    "West Garo Hills",
-    "West Jaintia Hills",
-    "West Khasi Hills",
-    "Other District",
-  ],
-  Mizoram: [
-    "Aizawl",
-    "Champhai",
-    "Hnahthial",
-    "Khawzawl",
-    "Kolasib",
-    "Lawngtlai",
-    "Lunglei",
-    "Mamit",
-    "Saitual",
-    "Serchhip",
-    "Siaha",
-    "Other District",
-  ],
-  Nagaland: [
-    "Chumoukedima",
-    "Dimapur",
-    "Kiphire",
-    "Kohima",
-    "Longleng",
-    "Mokokchung",
-    "Mon",
-    "Niuland",
-    "Noklak",
-    "Peren",
-    "Phek",
-    "Shamator",
-    "Tseminyu",
-    "Tuensang",
-    "Wokha",
-    "Zunheboto",
-    "Other District",
-  ],
-  Tripura: [
-    "Dhalai",
-    "Gomati",
-    "Khowai",
-    "North Tripura",
-    "Sepahijala",
-    "South Tripura",
-    "Unakoti",
-    "West Tripura (Agartala)",
-    "Other District",
-  ],
-  Sikkim: [
-    "Gangtok",
-    "Gyalshing",
-    "Mangan",
-    "Namchi",
-    "Pakyong",
-    "Soreng",
-    "Other District",
-  ],
-  "Arunachal Pradesh": [
-    "Anjaw",
-    "Changlang",
-    "Dibang Valley",
-    "East Kameng",
-    "East Siang",
-    "Kamle",
-    "Kra Daadi",
-    "Kurung Kumey",
-    "Lepa Rada",
-    "Lohit",
-    "Longding",
-    "Lower Dibang Valley",
-    "Lower Siang",
-    "Lower Subansiri",
-    "Namsai",
-    "Pakke Kessang",
-    "Papum Pare (Itanagar)",
-    "Shi Yomi",
-    "Siang",
-    "Tawang",
-    "Tirap",
-    "Upper Siang",
-    "Upper Subansiri",
-    "West Kameng",
-    "West Siang",
-    "Other District",
-  ],
-  Chandigarh: ["Chandigarh", "Other District"],
-  Puducherry: ["Karaikal", "Mahe", "Puducherry", "Yanam", "Other District"],
-  "Andaman and Nicobar Islands": [
-    "Nicobar",
-    "North and Middle Andaman",
-    "South Andaman (Port Blair)",
-    "Other District",
-  ],
-  "Dadra and Nagar Haveli and Daman and Diu": [
-    "Dadra and Nagar Haveli",
-    "Daman",
-    "Diu",
-    "Other District",
-  ],
-  Lakshadweep: [
-    "Agatti",
-    "Amini",
-    "Andrott",
-    "Kavaratti",
-    "Minicoy",
-    "Other District",
-  ],
-  Other: ["Other District"],
+export const ZONE_OPTIONS = [
+  "CHENNAI ZONE",
+  "NORTH ZONE",
+  "SOUTH ZONE",
+  "CENTRAL ZONE",
+  "WEST ZONE",
+  "EAST ZONE",
+  "COIMBATORE ZONE",
+  "MADURAI ZONE",
+  "TIRUCHIRAPPALLI ZONE",
+  "SALEM ZONE",
+  "TIRUNELVELI ZONE",
+  "HEADQUARTERS ZONE",
+  "DELHI NCR ZONE",
+  "BENGALURU ZONE",
+  "HYDERABAD ZONE",
+  "OTHER ZONE",
+];
+
+
+export const STATE_PIN_PREFIXES: Record<string, string[]> = {
+  "Andaman and Nicobar Islands": ["74"],
+  "Andhra Pradesh": ["51", "52", "53"],
+  "Arunachal Pradesh": ["79"],
+  "Assam": ["78"],
+  "Bihar": ["80", "81", "82", "83", "84", "85"],
+  "Chandigarh": ["16"],
+  "Chhattisgarh": ["49"],
+  "Dadra and Nagar Haveli and Daman and Diu": ["39"],
+  "Delhi": ["11"],
+  "Goa": ["40"],
+  "Gujarat": ["36", "37", "38", "39"],
+  "Haryana": ["12", "13"],
+  "Himachal Pradesh": ["17"],
+  "Jammu and Kashmir": ["18", "19"],
+  "Jharkhand": ["81", "82", "83"],
+  "Karnataka": ["56", "57", "58", "59"],
+  "Kerala": ["67", "68", "69"],
+  "Ladakh": ["19"],
+  "Lakshadweep": ["68"],
+  "Madhya Pradesh": ["45", "46", "47", "48"],
+  "Maharashtra": ["40", "41", "42", "43", "44"],
+  "Manipur": ["79"],
+  "Meghalaya": ["79"],
+  "Mizoram": ["79"],
+  "Nagaland": ["79"],
+  "Odisha": ["75", "76", "77"],
+  "Puducherry": ["60"],
+  "Punjab": ["14", "15", "16"],
+  "Rajasthan": ["30", "31", "32", "33", "34"],
+  "Sikkim": ["73"],
+  "Tamil Nadu": ["60", "61", "62", "63", "64"],
+  "Telangana": ["50"],
+  "Tripura": ["79"],
+  "Uttar Pradesh": ["20", "21", "22", "23", "24", "25", "26", "27", "28"],
+  "Uttarakhand": ["24", "26"],
+  "West Bengal": ["70", "71", "72", "73", "74"],
+};
+
+export const DISTRICT_PIN_PREFIXES: Record<string, string[]> = {
+  // Karnataka
+  "Bengaluru Urban": ["560"],
+  "Bengaluru Rural": ["562"],
+  "Kolar": ["563"],
+  "Chikkaballapur": ["562", "563"],
+  "Ramanagara": ["562"],
+  "Tumakuru": ["572"],
+  "Mysuru": ["570", "571"],
+  "Mandya": ["571"],
+  "Chamarajanagar": ["571"],
+  "Hassan": ["573"],
+  "Dakshina Kannada": ["574", "575"],
+  "Udupi": ["576"],
+  "Chikkamagaluru": ["577"],
+  "Chitradurga": ["577"],
+  "Davanagere": ["577"],
+  "Shivamogga": ["577"],
+  "Ballari": ["583"],
+  "Vijayanagara": ["583"],
+  "Koppal": ["583"],
+  "Raichur": ["584"],
+  "Dharwad": ["580"],
+  "Gadag": ["582"],
+  "Haveri": ["581"],
+  "Uttara Kannada": ["581"],
+  "Belagavi": ["590", "591"],
+  "Bagalkot": ["587"],
+  "Vijayapura": ["586"],
+  "Kalaburagi": ["585"],
+  "Yadgir": ["585"],
+  "Bidar": ["585"],
+  "Kodagu": ["571"],
+
+  // Delhi
+  "Central Delhi": ["110"],
+  "East Delhi": ["110"],
+  "New Delhi": ["110"],
+  "North Delhi": ["110"],
+  "North East Delhi": ["110"],
+  "North West Delhi": ["110"],
+  "Shahdara": ["110"],
+  "South Delhi": ["110"],
+  "South East Delhi": ["110"],
+  "South West Delhi": ["110"],
+  "West Delhi": ["110"],
+
+  // Maharashtra
+  "Mumbai City": ["400"],
+  "Mumbai Suburban": ["400"],
+  "Thane": ["400", "401"],
+  "Palghar": ["401"],
+  "Raigad": ["402", "410"],
+  "Pune": ["411", "412"],
+  "Nagpur": ["440", "441"],
+  "Nashik": ["422", "423"],
+  "Kolhapur": ["416"],
+  "Solapur": ["413"],
+  "Aurangabad": ["431"],
+  "Chhatrapati Sambhajinagar": ["431"],
+  "Amravati": ["444"],
+
+  // Tamil Nadu
+  "Chennai": ["600"],
+  "Coimbatore": ["641"],
+  "Madurai": ["625"],
+  "Tiruchirappalli": ["620"],
+  "Salem": ["636"],
+  "Tirunelveli": ["627"],
+  "Erode": ["638"],
+  "Vellore": ["632"],
+  "Kanchipuram": ["603", "631"],
+  "Chengalpattu": ["603"],
+  "Tiruvallur": ["601", "602"],
+
+  // Telangana
+  "Hyderabad": ["500"],
+  "Ranga Reddy": ["500", "501"],
+  "Medchal-Malkajgiri": ["500", "501"],
+  "Warangal": ["506"],
+  "Hanamkonda": ["506"],
+  "Karimnagar": ["505"],
+  "Nizamabad": ["503"],
+
+  // Andhra Pradesh
+  "Visakhapatnam": ["530", "531"],
+  "Vijayawada": ["520"],
+  "NTR": ["520", "521"],
+  "Krishna": ["521"],
+  "Guntur": ["522"],
+  "Tirupati": ["517"],
+  "Chittoor": ["517"],
+  "Kurnool": ["518"],
+  "Anantapur": ["515"],
+
+  // West Bengal
+  "Kolkata": ["700"],
+  "Howrah": ["711"],
+  "North 24 Parganas": ["700", "743"],
+  "South 24 Parganas": ["700", "743"],
+  "Darjeeling": ["734"],
+
+  // Gujarat
+  "Ahmedabad": ["380", "382"],
+  "Surat": ["394", "395"],
+  "Vadodara": ["390", "391"],
+  "Rajkot": ["360"],
+  "Bhavnagar": ["364"],
+  "Gandhinagar": ["382"],
+
+  // Rajasthan
+  "Jaipur": ["302", "303"],
+  "Jodhpur": ["342"],
+  "Udaipur": ["313"],
+  "Kota": ["324", "325"],
+  "Bikaner": ["334"],
+  "Ajmer": ["305"],
+
+  // Uttar Pradesh
+  "Lucknow": ["226"],
+  "Kanpur Nagar": ["208"],
+  "Kanpur Dehat": ["209"],
+  "Varanasi": ["221"],
+  "Prayagraj": ["211"],
+  "Agra": ["282"],
+  "Gautam Buddha Nagar": ["201"],
+  "Ghaziabad": ["201"],
+  "Meerut": ["250"],
+  "Gorakhpur": ["273"],
+  "Bareilly": ["243"],
+  "Aligarh": ["202"],
+
+  // Kerala
+  "Thiruvananthapuram": ["695"],
+  "Ernakulam": ["682", "683"],
+  "Kozhikode": ["673"],
+  "Thrissur": ["680"],
+  "Kollam": ["691"],
+  "Kannur": ["670"],
+
+  // Chandigarh
+  "Chandigarh": ["160"],
+
+  // Bihar
+  "Patna": ["800", "801"],
+  "Gaya": ["823"],
+  "Muzaffarpur": ["842"],
+  "Bhagalpur": ["812"],
+
+  // Madhya Pradesh
+  "Bhopal": ["462"],
+  "Indore": ["452"],
+  "Gwalior": ["474"],
+  "Jabalpur": ["482"],
+
+  // Punjab
+  "Ludhiana": ["141"],
+  "Amritsar": ["143"],
+  "Jalandhar": ["144"],
+  "Patiala": ["147"],
+
+  // Haryana
+  "Gurugram": ["122"],
+  "Faridabad": ["121"],
+  "Panipat": ["132"],
+  "Ambala": ["133", "134"],
+  "Karnal": ["132"],
+
+  // Odisha
+  "Khordha (Bhubaneswar)": ["751"],
+  "Cuttack": ["753"],
+  "Puri": ["752"],
+
+  // Assam
+  "Kamrup Metropolitan (Guwahati)": ["781"],
 };
 
 const WINGS = [
@@ -985,13 +432,7 @@ const formatDobDisplay = (dobString: string): string => {
   const parts = dobString.split("-");
   if (parts.length !== 3) return dobString;
   const [y, m, d] = parts;
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-  const idx = parseInt(m, 10) - 1;
-  const monthName = monthNames[idx] || m;
-  return `${d} ${monthName} ${y}`;
+  return `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
 };
 
 // Auto-capitalize first letter of words while typing live without disrupting typing flow
@@ -1003,10 +444,11 @@ const capitalizeLive = (str: string): string => {
 // Normalize names & words to clean Title Case on blur or submission
 const normalizeTitleCase = (str: string): string => {
   if (!str) return "";
-  const cleaned = str.trim().replace(/\s+/g, " ");
-  // If the user typed entirely in uppercase (e.g. "DEEPU KUMAR"), convert to lower then title case
-  const base = cleaned === cleaned.toUpperCase() ? cleaned.toLowerCase() : cleaned;
-  return base.replace(/(?:^|\s|[-/.,'#])([a-z\u00C0-\u024F])/g, (char) => char.toUpperCase());
+  return str
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .replace(/(?:^|\s|[-/.,'#])([a-z\u00C0-\u024F])/g, (char) => char.toUpperCase());
 };
 
 interface RegisterProps {
@@ -1017,13 +459,17 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
 
-  const urlQuery = searchParams.get("id") || searchParams.get("query") || searchParams.get("mobile") || "";
+  const tabParam = searchParams.get("tab");
+  const isResume = searchParams.get("resume") === "true";
+  const urlQuery = searchParams.get("id") || searchParams.get("query") || (tabParam === "status" ? searchParams.get("mobile") : "") || "";
   const initialTab =
-    defaultTab === "status" ||
-    location.pathname === "/status" ||
-    location.pathname === "/verify" ||
-    searchParams.get("tab") === "status" ||
-    !!urlQuery
+    tabParam === "register" || isResume
+      ? "register"
+      : defaultTab === "status" ||
+        location.pathname === "/status" ||
+        location.pathname === "/verify" ||
+        tabParam === "status" ||
+        !!urlQuery
       ? "status"
       : "register";
 
@@ -1040,42 +486,122 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
   const [statusResult, setStatusResult] = useState<any>(null);
   const [statusQrUrl, setStatusQrUrl] = useState<string>("");
   const [copiedId, setCopiedId] = useState(false);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
+
+  // Prefill params from incomplete leads resumption (both Web & WhatsApp)
+  const prefillMobile = searchParams.get("mobile") || "";
+  const prefullName = searchParams.get("fullName") || searchParams.get("name") || "";
+  const prefillFather = searchParams.get("fatherName") || searchParams.get("father_or_husband_name") || "";
+  const prefillAssembly = searchParams.get("assembly") || searchParams.get("assembly_assm") || "";
+  const prefillZone = searchParams.get("zone") || searchParams.get("zone_region") || "";
+  const prefillWing = searchParams.get("wing") || "Legal Wing";
+  const prefillState = searchParams.get("state") || "";
+  const prefillDistrict = searchParams.get("district") || "";
+  const prefillPincode = searchParams.get("pincode") || "";
+  const prefillGender = searchParams.get("gender") || "";
+  const prefillDob = searchParams.get("dob") || "";
+  const prefillAddress = searchParams.get("address") || "";
+  const dobParts = prefillDob.includes("/") ? prefillDob.split("/") : [];
 
   // Form State
   const [formData, setFormData] = useState({
-    fullName: "",
-    fatherName: "",
-    dob: "",
-    gender: "",
-    mobile: "",
-    whatsapp: "",
+    fullName: prefullName,
+    fatherName: prefillFather,
+    dob: prefillDob,
+    gender: prefillGender,
+    mobile: prefillMobile,
+    whatsapp: prefillMobile,
+    // Emergency contact fields (Compulsory)
+    emergencyNumber: "",
+    emergencyRelation: "",
     email: "",
     bloodGroup: "",
-    state: "",
-    district: "",
+    state: prefillState,
+    district: prefillDistrict,
+    assembly: searchParams.get("assembly") || searchParams.get("assembly_assm") || "",
+    zone: searchParams.get("zone") || searchParams.get("zone_region") || "",
     taluk: "",
-    address: "",
-    pincode: "",
-    qualification: "Graduate",
+    address: prefillAddress,
+    pincode: prefillPincode,
     profession: "",
-    wing: "Legal Wing",
-    hoursAvailable: "5-10 hours/month",
-    idProofType: "Aadhaar Card",
-    idProofNumber: "",
+    wing: prefillWing,
     pledgeAccepted: false,
     termsAccepted: false,
   });
 
-  const [dobDay, setDobDay] = useState("");
-  const [dobMonth, setDobMonth] = useState("");
-  const [dobYear, setDobYear] = useState("");
-  const [customDistrict, setCustomDistrict] = useState("");
+  const [dobDay, setDobDay] = useState(dobParts[0] || "");
+  const [dobMonth, setDobMonth] = useState(dobParts[1] || "");
+  const [dobYear, setDobYear] = useState(dobParts[2] || "");
+    const [customDistrict, setCustomDistrict] = useState("");
+
+  // Dynamic state & district-wise Assembly and Zone lists
+  const currentAssemblies = useMemo(() => {
+    return getAssembliesForDistrict(formData.state, formData.district);
+  }, [formData.state, formData.district]);
+
+  const currentZones = useMemo(() => {
+    return getZonesForDistrict(formData.state, formData.district);
+  }, [formData.state, formData.district]);
+  const [customAssembly, setCustomAssembly] = useState(
+    prefillAssembly && !ASSEMBLY_OPTIONS.includes(prefillAssembly) ? prefillAssembly : ""
+  );
+  const [customZone, setCustomZone] = useState(
+    prefillZone && !ZONE_OPTIONS.includes(prefillZone) ? prefillZone : ""
+  );
   const [canSubmit, setCanSubmit] = useState(false);
   const [checkingMobile, setCheckingMobile] = useState(false);
+  const [existingMemberFound, setExistingMemberFound] = useState<{
+    registrationId: string;
+    status: string;
+  } | null>(null);
   const [sameAsMobile, setSameAsMobile] = useState(false);
   const nativeDateInputRef = React.useRef<HTMLInputElement | null>(null);
   const formCardRef = React.useRef<HTMLDivElement | null>(null);
   const errorBannerRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Check mobile availability asynchronously with backend
+  const checkMobileAvailability = async (mobileNum: string): Promise<boolean> => {
+    const clean = mobileNum.replace(/[\s\-()]/g, "");
+    if (!/^[6-9]\d{9}$/.test(clean)) {
+      setExistingMemberFound(null);
+      return false;
+    }
+
+    setCheckingMobile(true);
+    try {
+      const res = await fetch(
+        getApiUrl(`/api/members/check-mobile?mobile=${encodeURIComponent(clean)}`)
+      );
+      const json = await res.json();
+      if (res.ok && json.registered) {
+        setExistingMemberFound({
+          registrationId: json.registrationId,
+          status: json.status,
+        });
+        setFieldErrors((prev) => ({
+          ...prev,
+          mobile: "This mobile number is already registered.",
+        }));
+        setTouchedFields((prev) => ({ ...prev, mobile: true }));
+        return true;
+      } else {
+        setExistingMemberFound(null);
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          if (next.mobile && next.mobile.includes("already registered")) {
+            delete next.mobile;
+          }
+          return next;
+        });
+        return false;
+      }
+    } catch (e) {
+      console.warn("Could not check mobile availability:", e);
+      return false;
+    } finally {
+      setCheckingMobile(false);
+    }
+  };
 
   // Photo state
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -1098,22 +624,24 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     switch (field) {
       case "photo": {
         if (!value && !photoFile && !photoPreview) {
-          return "Passport size photograph is mandatory. Please upload a clear photo.";
+          return "Passport photograph is required.";
         }
         return "";
       }
       case "fullName": {
         const val = String(value || "").trim();
         if (!val) return "Please enter your full legal name.";
-        if (val.length < 3) return "Full Name must be at least 3 characters.";
-        if (!/^[a-zA-Z\s.']+$/.test(val)) return "Name should contain only letters, dots, and spaces.";
+        const lettersOnly = val.replace(/[^a-zA-Z]/g, "");
+        if (lettersOnly.length < 3) return "Full Name must contain at least 3 letters.";
+        if (!/^[a-zA-Z\s]+$/.test(val)) return "Name must contain alphabets and spaces only.";
         return "";
       }
       case "fatherName": {
         const val = String(value || "").trim();
         if (!val) return "Please enter father's or husband's name.";
-        if (val.length < 3) return "Name must be at least 3 characters.";
-        if (!/^[a-zA-Z\s.']+$/.test(val)) return "Name should contain only letters, dots, and spaces.";
+        const lettersOnly = val.replace(/[^a-zA-Z]/g, "");
+        if (lettersOnly.length < 3) return "Name must contain at least 3 letters.";
+        if (!/^[a-zA-Z\s]+$/.test(val)) return "Name must contain alphabets and spaces only.";
         return "";
       }
       case "dob": {
@@ -1132,11 +660,32 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         if (!val) return "Please enter your primary mobile number.";
         if (val.length < 10) return "Mobile number must be exactly 10 digits.";
         if (!/^[6-9]\d{9}$/.test(val)) return "Must be a valid 10-digit number starting with 6, 7, 8, or 9.";
+        if (existingMemberFound) {
+          return "This mobile number is already registered.";
+        }
         return "";
       }
       case "whatsapp": {
         const val = String(value || "").trim();
         if (val && !/^[6-9]\d{9}$/.test(val)) return "WhatsApp number must be 10 digits starting with 6, 7, 8, or 9.";
+        return "";
+      }
+      case "emergencyNumber": {
+        const val = String(value || "").trim();
+        if (!val) return "Emergency contact number is required.";
+        if (val.length < 10) return "Emergency contact number must be exactly 10 digits.";
+        if (!/^[6-9]\d{9}$/.test(val)) return "Emergency contact number must start with 6, 7, 8, or 9.";
+        const primaryMobile = currentFormData.mobile ? currentFormData.mobile.trim() : "";
+        if (primaryMobile && val === primaryMobile) {
+          return "Emergency contact number cannot be the same as primary mobile number.";
+        }
+        return "";
+      }
+      case "emergencyRelation": {
+        const val = String(value || "").trim();
+        if (!val) return "Please select relationship with emergency contact.";
+        const validRelations = ["Father", "Mother", "Spouse", "Sibling", "Friend", "Other"];
+        if (!validRelations.includes(val)) return "Please select a valid relation option.";
         return "";
       }
       case "email": {
@@ -1172,7 +721,26 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       case "pincode": {
         const val = String(value || "").trim();
         if (!val) return "Please enter your 6-digit PIN code.";
-        if (!/^[1-9][0-9]{5}$/.test(val)) return "Please enter a valid 6-digit Indian PIN code.";
+        if (!/^\d{6}$/.test(val)) return "PIN code must be exactly 6 digits.";
+        if (val.startsWith("0")) return "PIN code cannot start with 0.";
+
+        const state = currentFormData.state;
+        if (state && STATE_PIN_PREFIXES[state]) {
+          const validStatePrefixes = STATE_PIN_PREFIXES[state];
+          const matchesState = validStatePrefixes.some((pref) => val.startsWith(pref));
+          if (!matchesState) {
+            return `PIN code does not match ${state} (valid prefixes: ${validStatePrefixes.join(", ")}).`;
+          }
+        }
+
+        const district = currentFormData.district;
+        if (district && district !== "Other District" && DISTRICT_PIN_PREFIXES[district]) {
+          const validDistPrefixes = DISTRICT_PIN_PREFIXES[district];
+          const matchesDist = validDistPrefixes.some((pref) => val.startsWith(pref));
+          if (!matchesDist) {
+            return `PIN code does not match ${district} (valid prefix: ${validDistPrefixes.join(", ")}).`;
+          }
+        }
         return "";
       }
       case "wing": {
@@ -1221,6 +789,28 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       else delete next[field];
       return next;
     });
+
+    if (field === "mobile") {
+      const clean = String(val || "").trim();
+      if (clean.length < 10) {
+        setExistingMemberFound(null);
+      }
+      // Re-validate emergencyNumber if already filled
+      if (formData.emergencyNumber) {
+        const emErr = validateField("emergencyNumber", formData.emergencyNumber, {
+          ...formData,
+          mobile: clean,
+        });
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          if (emErr) next.emergencyNumber = emErr;
+          else if (next.emergencyNumber && next.emergencyNumber.includes("cannot be the same")) {
+            delete next.emergencyNumber;
+          }
+          return next;
+        });
+      }
+    }
   };
 
   // Only align scroll upon final application submission so acknowledgment receipt is cleanly at the top of the viewport
@@ -1467,12 +1057,12 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       doc.setTextColor(146, 64, 14);
       doc.text("PENDING VERIFICATION", pageWidth - 46, 71, { align: "center" });
 
-      // 8 Details Cards (2 cols x 4 rows)
+      // 10 Details Cards (2 cols x 5 rows)
       const colW = (pageWidth - 44) / 2;
       const startX = 18;
       const startY = 86;
-      const cardH = 22;
-      const gapY = 6;
+      const cardH = 20;
+      const gapY = 5;
 
       const items = [
         { label: "APPLICANT NAME", val: targetMember.fullName },
@@ -1485,10 +1075,24 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         },
         { label: "PRIMARY MOBILE", val: targetMember.mobile },
         {
+          label: "ASSEMBLY CONSTITUENCY",
+          val: targetMember.assembly || "—",
+        },
+        {
+          label: "ZONE / REGION",
+          val: targetMember.zone || "—",
+        },
+        {
           label: "DATE OF BIRTH",
           val: targetMember.dob ? formatDobDisplay(targetMember.dob) : "—",
         },
-        { label: "BLOOD GROUP", val: targetMember.bloodGroup || "Not Specified" },
+        {
+          label: "BLOOD GROUP",
+          val:
+            targetMember.bloodGroup && targetMember.bloodGroup !== "Not Specified"
+              ? targetMember.bloodGroup
+              : "—",
+        },
         { label: "FATHER'S / SPOUSE NAME", val: targetMember.fatherName || "—" },
         {
           label: "SUBMISSION DATE",
@@ -1514,7 +1118,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(7.5);
         doc.setTextColor(120, 113, 108);
-        doc.text(item.label, x + 5, y + 7);
+        doc.text(item.label, x + 5, y + 6);
 
         doc.setFont("helvetica", "bold");
         const valStr = String(item.val || "—");
@@ -1526,7 +1130,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         }
         const maxW = colW - 10;
         const lineVal = doc.splitTextToSize(valStr, maxW)[0] || valStr;
-        doc.text(lineVal, x + 5, y + 16);
+        doc.text(lineVal, x + 5, y + 15);
       });
 
       // Cadre Notice Box (Strictly below row 3 - Zero overlap!)
@@ -1786,12 +1390,20 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
           <div class="item-value">${targetMember.mobile}</div>
         </div>
         <div class="item">
+          <div class="item-label">Assembly Constituency</div>
+          <div class="item-value">${targetMember.assembly || "—"}</div>
+        </div>
+        <div class="item">
+          <div class="item-label">Zone / Region</div>
+          <div class="item-value">${targetMember.zone || "—"}</div>
+        </div>
+        <div class="item">
           <div class="item-label">Date of Birth</div>
           <div class="item-value">${targetMember.dob ? formatDobDisplay(targetMember.dob) : "—"}</div>
         </div>
         <div class="item">
           <div class="item-label">Blood Group</div>
-          <div class="item-value">${targetMember.bloodGroup || "Not Specified"}</div>
+          <div class="item-value">${targetMember.bloodGroup && targetMember.bloodGroup !== "Not Specified" ? targetMember.bloodGroup : "—"}</div>
         </div>
         <div class="item">
           <div class="item-label">Father's / Spouse Name</div>
@@ -1913,6 +1525,31 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
       setStatusResult(json.member);
 
+      // Sync existing member status & ID card lookup to WhatsApp CRM Inbox
+      fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: json.member.mobile || queryParam,
+          customerName: json.member.fullName,
+          memberType: "EXISTING_MEMBER",
+          channelSource: "web",
+          registrationStatus: json.member.status || "APPROVED",
+          registrationId: json.member.registrationId,
+          wing: json.member.wing,
+          state: json.member.state,
+          district: json.member.district,
+          stepLabel: `Already a Member Checked Status & Viewed ID Card (${json.member.registrationId})`,
+          buttonClicked: "Check Status / View ID Card",
+          userMessage: `Checked Cadre Status & Viewed ID Card: ${json.member.registrationId}`,
+          cardData:
+            json.member.status === "APPROVED"
+              ? { ...json.member, action: "VIEWED" }
+              : null,
+          cardViewed: json.member.status === "APPROVED",
+        }),
+      }).catch(() => {});
+
       // If member is APPROVED, generate QR code for the ID card
       if (json.member.status === "APPROVED") {
         const qrText = `https://mahasevadal.com/verify?id=${json.member.registrationId}&name=${encodeURIComponent(
@@ -1930,12 +1567,15 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newState = e.target.value;
+    const defaultZone = getDefaultZoneForState(newState);
     setFormData((prev) => ({
       ...prev,
       state: newState,
       district: "",
     }));
     setCustomDistrict("");
+    setCustomAssembly("");
+    setCustomZone("");
     setTouchedFields((prev) => ({ ...prev, state: true, district: false }));
     const err = validateField("state", newState);
     setFieldErrors((prev) => {
@@ -1946,10 +1586,25 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       delete next.customDistrict;
       return next;
     });
+
+    if (formData.pincode && touchedFields.pincode) {
+      const pinErr = validateField("pincode", formData.pincode, {
+        ...formData,
+        state: newState,
+        district: "",
+      });
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        if (pinErr) next.pincode = pinErr;
+        else delete next.pincode;
+        return next;
+      });
+    }
   };
 
   const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDistrict = e.target.value;
+    const defaultZone = getDefaultZoneForDistrict(formData.state, newDistrict);
     setFormData((prev) => ({
       ...prev,
       district: newDistrict,
@@ -1957,6 +1612,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     if (newDistrict !== "Other District") {
       setCustomDistrict("");
     }
+    setCustomAssembly("");
     setTouchedFields((prev) => ({ ...prev, district: true }));
     const err = validateField("district", newDistrict);
     setFieldErrors((prev) => {
@@ -1968,6 +1624,19 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       }
       return next;
     });
+
+    if (formData.pincode && touchedFields.pincode) {
+      const pinErr = validateField("pincode", formData.pincode, {
+        ...formData,
+        district: newDistrict,
+      });
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        if (pinErr) next.pincode = pinErr;
+        else delete next.pincode;
+        return next;
+      });
+    }
   };
 
   const handleInputChange = (
@@ -1977,12 +1646,12 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     let { value } = e.target;
 
     // Strict numerical & character filtering while typing
-    if (name === "mobile" || name === "whatsapp") {
+    if (name === "mobile" || name === "whatsapp" || name === "emergencyNumber") {
       value = value.replace(/\D/g, "").slice(0, 10);
     } else if (name === "pincode") {
       value = value.replace(/\D/g, "").slice(0, 6);
     } else if (name === "fullName" || name === "fatherName") {
-      value = value.replace(/[^a-zA-Z\s.']/g, "");
+      value = value.replace(/[^a-zA-Z\s]/g, "");
     }
 
     const shouldCapitalize =
@@ -2002,9 +1671,44 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       return next;
     });
 
+    if (name === "mobile") {
+      if (existingMemberFound) {
+        setExistingMemberFound(null);
+      }
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        if (next.mobile && next.mobile.includes("already registered")) {
+          delete next.mobile;
+        }
+        // Cross-validate emergency number if entered
+        if (formData.emergencyNumber && formData.emergencyNumber === formattedValue) {
+          next.emergencyNumber = "Emergency contact number cannot be the same as primary mobile number.";
+        } else if (next.emergencyNumber && next.emergencyNumber.includes("cannot be the same")) {
+          delete next.emergencyNumber;
+        }
+        return next;
+      });
+    }
+
+    if (name === "emergencyNumber") {
+      if (formData.mobile && formattedValue === formData.mobile) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          emergencyNumber: "Emergency contact number cannot be the same as primary mobile number.",
+        }));
+      } else if (fieldErrors.emergencyNumber && fieldErrors.emergencyNumber.includes("cannot be the same")) {
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          delete next.emergencyNumber;
+          return next;
+        });
+      }
+    }
+
     // Real-time error clearance/update as the user fills in details
     if (touchedFields[name]) {
-      const err = validateField(name, formattedValue);
+      const updatedData = { ...formData, [name]: formattedValue };
+      const err = validateField(name, formattedValue, updatedData);
       setFieldErrors((prev) => {
         const next = { ...prev };
         if (err) next[name] = err;
@@ -2025,6 +1729,34 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      e.target.value = "";
+
+      // Allowed formats: JPG / JPEG and PNG
+      const ext = ("." + (file.name.split(".").pop() || "")).toLowerCase();
+      const mime = (file.type || "").toLowerCase();
+      const allowedExts = [".jpg", ".jpeg", ".png"];
+      const allowedMimes = ["image/jpeg", "image/jpg", "image/png"];
+
+      const isFormatValid = allowedExts.includes(ext) || allowedMimes.includes(mime);
+      if (!isFormatValid) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          photo: "Please upload a JPG or PNG photo.",
+        }));
+        setTouchedFields((prev) => ({ ...prev, photo: true }));
+        return;
+      }
+
+      // Max file size: 5 MB (5 * 1024 * 1024 bytes)
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          photo: "This file is too big. Please choose a photo under 5 MB.",
+        }));
+        setTouchedFields((prev) => ({ ...prev, photo: true }));
+        return;
+      }
+
       setRawPhotoName(file.name);
       setPhotoFile(file);
       setTouchedFields((prev) => ({ ...prev, photo: true }));
@@ -2042,7 +1774,6 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         }
       };
       reader.readAsDataURL(file);
-      e.target.value = "";
     }
   };
 
@@ -2067,7 +1798,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     setTouchedFields((prev) => ({ ...prev, photo: true }));
     setFieldErrors((prev) => ({
       ...prev,
-      photo: "Passport size photograph is mandatory. Please upload a clear photo.",
+      photo: "Passport photograph is required.",
     }));
   };
 
@@ -2077,7 +1808,18 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     const newTouched: Record<string, boolean> = { ...touchedFields };
 
     if (currentStep === 1) {
-      const step1Fields = ["photo", "fullName", "fatherName", "dob", "gender", "mobile", "whatsapp", "email"];
+      const step1Fields = [
+        "photo",
+        "fullName",
+        "fatherName",
+        "dob",
+        "gender",
+        "mobile",
+        "whatsapp",
+        "emergencyNumber",
+        "emergencyRelation",
+        "email",
+      ];
       step1Fields.forEach((field) => {
         newTouched[field] = true;
         let val = formData[field as keyof typeof formData];
@@ -2188,15 +1930,78 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       return;
     }
 
-    // On Step 1, verify mobile format before proceeding
-    if (step === 1 && formData.mobile && !/^[6-9]\d{9}$/.test(formData.mobile)) {
-      setErrorMsg("Please enter a valid 10-digit Indian mobile number.");
-      scrollToNotification();
-      return;
+    // On Step 1, verify mobile format and check duplicate registration before proceeding
+    if (step === 1) {
+      if (formData.mobile && !/^[6-9]\d{9}$/.test(formData.mobile)) {
+        setErrorMsg("Please enter a valid 10-digit Indian mobile number.");
+        scrollToNotification();
+        return;
+      }
+      if (existingMemberFound) {
+        setErrorMsg("This mobile number is already registered.");
+        scrollToNotification();
+        return;
+      }
+      if (formData.mobile && /^[6-9]\d{9}$/.test(formData.mobile)) {
+        const isDuplicate = await checkMobileAvailability(formData.mobile);
+        if (isDuplicate) {
+          setErrorMsg("This mobile number is already registered.");
+          scrollToNotification();
+          return;
+        }
+      }
     }
 
     setErrorMsg("");
+    const currentStep = step;
     setStep((s) => Math.min(s + 1, 4));
+    // Track lead drop-off progress asynchronously for Incomplete Leads recovery CRM
+    const cleanPhone = (formData.mobile || "").replace(/\D/g, "");
+    if (cleanPhone.length >= 10) {
+      const stepMap: Record<number, { code: string; label: string }> = {
+        1: { code: "WEB_STEP_1_PROFILE", label: "Web Step 1: Personal Profile" },
+        2: { code: "WEB_STEP_2_ADDRESS", label: "Web Step 2: Emergency Contact & Address" },
+        3: { code: "WEB_STEP_3_WING", label: "Web Step 3: Seva Wing & Photo Upload" },
+      };
+      const info = stepMap[currentStep] || { code: `WEB_STEP_${currentStep}`, label: `Web Step ${currentStep}` };
+      fetch(getApiUrl("/api/leads/track"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: cleanPhone.slice(-10),
+          fullName: formData.fullName || "Volunteer Cadre",
+          channel: "web",
+          lastStepCompleted: info.code,
+          lastStepLabel: info.label,
+          partialData: {
+            state: formData.state,
+            district: formData.district,
+            wing: formData.wing,
+            dob: formData.dob,
+            gender: formData.gender,
+          },
+        }),
+      }).catch(() => {});
+
+      // Also sync Web Registration step into WhatsApp CRM Inbox
+      fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: cleanPhone.slice(-10),
+          customerName: formData.fullName || "Volunteer Cadre",
+          memberType: "NEW_MEMBER",
+          channelSource: "web",
+          registrationStatus: "INCOMPLETE",
+          wing: formData.wing,
+          state: formData.state,
+          district: formData.district,
+          stepLabel: info.label,
+          buttonClicked: `Next (${info.label})`,
+          userMessage: `Completed ${info.label}`,
+        }),
+      }).catch(() => {});
+    }
     scrollToCardTop();
   };
 
@@ -2214,19 +2019,19 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       gender: "",
       mobile: "",
       whatsapp: "",
+      emergencyNumber: "",
+      emergencyRelation: "",
       email: "",
       bloodGroup: "",
       state: "",
       district: "",
+      assembly: "",
+      zone: "",
       taluk: "",
       address: "",
       pincode: "",
-      qualification: "Graduate",
       profession: "",
       wing: "Legal Wing",
-      hoursAvailable: "5-10 hours/month",
-      idProofType: "Aadhaar Card",
-      idProofNumber: "",
       pledgeAccepted: false,
       termsAccepted: false,
     });
@@ -2240,6 +2045,8 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
     setRawPhotoSrc(null);
     setFieldErrors({});
     setTouchedFields({});
+    setExistingMemberFound(null);
+    setCheckingMobile(false);
     setErrorMsg("");
   };
 
@@ -2275,8 +2082,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
       const data = new FormData();
       Object.entries(formData).forEach(([key, val]) => {
+        // Exclude client-only agreement flags from backend payload
+        if (key === "termsAccepted") {
+          return;
+        }
         if (key === "district") {
           data.append(key, normalizeTitleCase(finalDistrict));
+        } else if (key === "assembly") {
+          data.append(key, normalizeTitleCase(String(val || "")));
+        } else if (key === "zone") {
+          data.append(key, String(val || "").toUpperCase().trim());
         } else if (
           key === "fullName" ||
           key === "fatherName" ||
@@ -2308,12 +2123,17 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
           setTouchedFields(marked);
         }
         if (res.status === 409 || (json.error && json.error.toLowerCase().includes("already registered"))) {
+          setExistingMemberFound({
+            registrationId: json.existingRegistrationId || "",
+            status: json.status || "PENDING",
+          });
+          const duplicateMsg = "This mobile number is already registered.";
           setFieldErrors((prev) => ({
             ...prev,
-            mobile: "This mobile number is already registered",
+            mobile: duplicateMsg,
           }));
           setTouchedFields((prev) => ({ ...prev, mobile: true }));
-          throw new Error("This mobile number is already registered");
+          throw new Error(duplicateMsg);
         }
         throw new Error(json.error || "Failed to submit registration");
       }
@@ -2321,16 +2141,44 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
       // Record submitted member for official acknowledgment slip
       // CRITICAL: No ID card or download options are shown at registration time!
       setRegisteredMember(json.member);
+
+      // Mark candidate as RECOVERED in Incomplete Leads recovery CRM
+      const cleanSubPhone = (formData.mobile || "").replace(/\D/g, "");
+      if (cleanSubPhone.length >= 10) {
+        fetch(getApiUrl("/api/leads/track"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mobile: cleanSubPhone.slice(-10),
+            fullName: formData.fullName,
+            channel: "web",
+            lastStepCompleted: "WEB_COMPLETED",
+            lastStepLabel: "Completed & Registered (Recovered)",
+            status: "RECOVERED",
+          }),
+        }).catch(() => {});
+      }
+      logActivity({
+        channel: "WEB",
+        component: "Register",
+        action: `Cadre Registration Successful: ${json.member?.registrationId || ""}`,
+        status: "PASS",
+        details: { fullName: formData.fullName, mobile: formData.mobile, wing: formData.wing },
+      });
       window.scrollTo({
         top: 0,
         behavior: "instant",
       });
     } catch (err: any) {
       const msg = err.message || "Network error. Please make sure backend is running.";
-      const displayMsg = msg.toLowerCase().includes("already registered")
-        ? "This mobile number is already registered"
-        : msg;
-      setErrorMsg(displayMsg);
+      setErrorMsg(msg);
+      logActivity({
+        channel: "WEB",
+        component: "Register",
+        action: `Registration Submission Failed: ${msg}`,
+        status: "FAIL",
+        details: { mobile: formData.mobile, wing: formData.wing },
+      });
       scrollToNotification();
     } finally {
       setLoading(false);
@@ -2451,7 +2299,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                         <span className="text-[8px] font-mono mt-0.5">Photo</span>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-2 text-xs flex-1 w-full">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-2 text-xs flex-1 w-full">
                       <div>
                         <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
                           Applicant Name
@@ -2482,6 +2330,22 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                         </span>
                         <span className="font-mono font-medium text-ink text-xs sm:text-sm block leading-snug">
                           +91 {registeredMember.mobile}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                          Assembly Constituency
+                        </span>
+                        <span className="font-semibold text-ink text-xs sm:text-sm block leading-snug">
+                          {registeredMember.assembly || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                          Zone / Region
+                        </span>
+                        <span className="font-semibold text-ink text-xs sm:text-sm block leading-snug">
+                          {registeredMember.zone || "—"}
                         </span>
                       </div>
                       <div>
@@ -2630,10 +2494,12 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                   role="alert"
                   aria-live="assertive"
                   tabIndex={-1}
-                  className="flex items-center gap-2.5 p-3.5 mb-6 text-xs text-rose-800 bg-rose-50 border-2 border-rose-300 rounded-xl shadow-md animate-fade-in ring-4 ring-rose-400/20 scroll-mt-28 outline-none"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 mb-6 text-xs text-rose-900 bg-rose-50 border-2 border-rose-300 rounded-xl shadow-md animate-fade-in ring-4 ring-rose-400/20 scroll-mt-28 outline-none"
                 >
-                  <AlertCircle size={18} className="flex-shrink-0 text-rose-600 animate-pulse" />
-                  <span className="font-semibold leading-relaxed">{errorMsg}</span>
+                  <div className="flex items-center gap-2.5">
+                    <AlertCircle size={18} className="flex-shrink-0 text-rose-600 animate-pulse" />
+                    <span className="font-semibold leading-relaxed">{errorMsg}</span>
+                  </div>
                 </div>
               )}
 
@@ -2700,7 +2566,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                             <span>{photoPreview ? "Change Photo" : "Upload Passport Photograph * (Mandatory)"}</span>
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png"
                               className="hidden"
                               onChange={handlePhotoSelect}
                             />
@@ -2739,7 +2605,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                             </span>
                           ) : (
                             <span>
-                              Passport photograph is <strong className="text-ink">mandatory</strong>. Select photo from device — an interactive cropping modal will open to position and frame your face.
+                              Passport photograph is <strong className="text-ink">mandatory</strong> (JPG or PNG, max 5 MB). Select photo from device — an interactive cropping modal will open to position and frame your face.
                             </span>
                           )}
                         </p>
@@ -2868,20 +2734,25 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-ink mb-1">
+                        <label htmlFor="mobile" className="block text-xs font-medium text-ink mb-1">
                           Primary Mobile Number <span className="text-rose-500">*</span>
                         </label>
                         <div className="relative">
-                          <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-editorial" />
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-editorial select-none pointer-events-none">
+                            +91
+                          </span>
                           <input
                             type="tel"
+                            id="mobile"
                             name="mobile"
                             maxLength={10}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={formData.mobile}
                             onChange={handleInputChange}
                             onBlur={() => handleBlur("mobile")}
-                            placeholder="Enter 10-digit Mobile Number"
-                            className={getInputClass("mobile", "pl-9 font-mono")}
+                            placeholder="10-digit number"
+                            className={getInputClass("mobile", "pl-10")}
                           />
                         </div>
                         {renderFieldError("mobile")}
@@ -2889,12 +2760,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="block text-xs font-medium text-ink">
+                          <label htmlFor="whatsapp" className="block text-xs font-medium text-ink">
                             WhatsApp Number <span className="text-muted-editorial font-normal">(Optional)</span>
                           </label>
-                          <label className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-[#FF6200] font-medium hover:underline select-none">
+                          <label
+                            htmlFor="sameAsMobileCheckbox"
+                            className="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-[#FF6200] font-medium hover:underline select-none"
+                          >
                             <input
                               type="checkbox"
+                              id="sameAsMobileCheckbox"
                               checked={sameAsMobile}
                               onChange={(e) => {
                                 const checked = e.target.checked;
@@ -2910,6 +2785,18 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                                       return next;
                                     });
                                   }
+                                } else {
+                                  // When user removes tick, remove the same number from the WhatsApp field
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    whatsapp: prev.whatsapp.trim() === prev.mobile.trim() ? "" : prev.whatsapp,
+                                  }));
+                                  setTouchedFields((prev) => ({ ...prev, whatsapp: false }));
+                                  setFieldErrors((f) => {
+                                    const next = { ...f };
+                                    delete next.whatsapp;
+                                    return next;
+                                  });
                                 }
                               }}
                               className="rounded border-hairline text-[#FF6200] focus:ring-[#FF6200] w-3.5 h-3.5 cursor-pointer accent-[#FF6200]"
@@ -2918,11 +2805,17 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           </label>
                         </div>
                         <div className="relative">
-                          <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-editorial" />
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-editorial select-none pointer-events-none">
+                            +91
+                          </span>
                           <input
                             type="tel"
+                            id="whatsapp"
                             name="whatsapp"
                             maxLength={10}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            disabled={sameAsMobile}
                             value={formData.whatsapp}
                             onChange={(e) => {
                               if (sameAsMobile && e.target.value !== formData.mobile) {
@@ -2931,8 +2824,11 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                               handleInputChange(e);
                             }}
                             onBlur={() => handleBlur("whatsapp")}
-                            placeholder={sameAsMobile ? (formData.mobile || "Same as Mobile") : "Enter 10-digit WhatsApp Number (Optional)"}
-                            className={getInputClass("whatsapp", "pl-9 font-mono")}
+                            placeholder="10-digit number"
+                            className={getInputClass(
+                              "whatsapp",
+                              `pl-10 ${sameAsMobile ? "bg-surface-soft/80 text-muted-editorial cursor-not-allowed opacity-80" : ""}`
+                            )}
                           />
                         </div>
                         {renderFieldError("whatsapp")}
@@ -2958,26 +2854,105 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-ink mb-1">
+                        <label htmlFor="bloodGroup" className="block text-xs font-medium text-ink mb-1">
                           Blood Group <span className="text-muted-editorial font-normal">(Optional)</span>
                         </label>
                         <select
+                          id="bloodGroup"
                           name="bloodGroup"
                           value={formData.bloodGroup}
                           onChange={handleInputChange}
                           className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-hairline bg-surface-soft text-ink focus:outline-none focus:border-[#FF6200] transition-colors"
                         >
-                          <option value="">Select Blood Group (Optional)</option>
-                          <option value="A+">A+ (A Positive)</option>
-                          <option value="A-">A- (A Negative)</option>
-                          <option value="B+">B+ (B Positive)</option>
-                          <option value="B-">B- (B Negative)</option>
-                          <option value="O+">O+ (O Positive)</option>
-                          <option value="O-">O- (O Negative)</option>
-                          <option value="AB+">AB+ (AB Positive)</option>
-                          <option value="AB-">AB- (AB Negative)</option>
-                          <option value="Not Specified">Not Specified / Don't Know</option>
+                          <option value="">Select blood group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                          <option value="Don't know">Don't know</option>
                         </select>
+                        <p className="mt-1.5 text-[13px] text-muted-editorial flex items-center gap-1.5 font-normal">
+                          <Info size={14} className="text-muted-editorial shrink-0" />
+                          <span>Recommended for emergency use</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* ========================================================================= */}
+                    {/* 2. SEPARATE EMERGENCY CONTACT SECTION (Compulsory, printed on ID card)    */}
+                    {/* ========================================================================= */}
+                    <div className="bg-[#fffdf9] border border-[#f3e3ce] rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+                      <div className="flex items-start justify-between border-b border-[#f3e3ce]/80 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="text-[#FF6200]" size={16} />
+                            <h4 className="font-serif text-sm sm:text-base font-bold text-ink">
+                              Emergency Contact Details <span className="text-rose-500">*</span>
+                            </h4>
+                          </div>
+                          <p className="text-xs text-muted-editorial mt-0.5">
+                            This number will be printed on your ID card.
+                          </p>
+                        </div>
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                          Compulsory
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Emergency Number Input */}
+                        <div>
+                          <label htmlFor="emergencyNumber" className="block text-xs font-medium text-ink mb-1">
+                            Emergency Number <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-editorial select-none pointer-events-none">
+                              +91
+                            </span>
+                            <input
+                              type="tel"
+                              id="emergencyNumber"
+                              name="emergencyNumber"
+                              maxLength={10}
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={formData.emergencyNumber}
+                              onChange={handleInputChange}
+                              onBlur={() => handleBlur("emergencyNumber")}
+                              placeholder="10-digit emergency number"
+                              className={getInputClass("emergencyNumber", "pl-10")}
+                            />
+                          </div>
+                          {renderFieldError("emergencyNumber")}
+                        </div>
+
+                        {/* Relation to Member Dropdown */}
+                        <div>
+                          <label htmlFor="emergencyRelation" className="block text-xs font-medium text-ink mb-1">
+                            Relationship with Member <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            id="emergencyRelation"
+                            name="emergencyRelation"
+                            value={formData.emergencyRelation}
+                            onChange={handleInputChange}
+                            onBlur={() => handleBlur("emergencyRelation")}
+                            className={getInputClass("emergencyRelation")}
+                          >
+                            <option value="">Select Relation</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Other">Other</option>
+                          </select>
+                          {renderFieldError("emergencyRelation")}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -3069,6 +3044,41 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                               {renderFieldError("customDistrict")}
                             </div>
                           )}
+                        </div>
+                      </div>
+
+                      {/* Row 1.5: Assembly Constituency & Zone / Region Text Inputs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="assembly" className="block text-xs font-medium text-ink mb-1">
+                            Assembly Constituency
+                          </label>
+                          <input
+                            type="text"
+                            id="assembly"
+                            name="assembly"
+                            value={formData.assembly}
+                            onChange={handleInputChange}
+                            onBlur={() => handleTitleCaseBlur("assembly")}
+                            placeholder="e.g. Thiyagarayanagar"
+                            className={getInputClass("assembly", "capitalize placeholder:normal-case")}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="zone" className="block text-xs font-medium text-ink mb-1">
+                            Zone / Region
+                          </label>
+                          <input
+                            type="text"
+                            id="zone"
+                            name="zone"
+                            value={formData.zone}
+                            onChange={handleInputChange}
+                            onBlur={() => handleTitleCaseBlur("zone")}
+                            placeholder="e.g. Teynampet Zone"
+                            className={getInputClass("zone", "capitalize placeholder:normal-case")}
+                          />
                         </div>
                       </div>
 
@@ -3225,19 +3235,19 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                       </p>
                     </div>
 
-                    {/* Application Review Summary Card */}
-                    <div className="bg-surface-soft/90 border border-hairline rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
+                    {/* Application Review Summary Section */}
+                    <div className="space-y-4">
                       {/* Header */}
-                      <div className="flex items-center justify-between pb-3 border-b border-hairline">
+                      <div className="flex items-center justify-between pb-1">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-[#FF6200]/10 flex items-center justify-center text-[#FF6200]">
-                            <FileText size={16} />
+                          <div className="w-8 h-8 rounded-lg bg-[#FF6200]/10 flex items-center justify-center text-[#FF6200]">
+                            <FileText size={18} />
                           </div>
                           <div>
-                            <span className="font-serif font-bold text-sm text-ink block leading-tight">
+                            <span className="font-serif font-bold text-base text-ink block leading-tight">
                               Enrollment Summary Review
                             </span>
-                            <span className="text-[11px] text-muted-editorial">
+                            <span className="text-xs text-muted-editorial">
                               Verify all your submitted details before official enrollment
                             </span>
                           </div>
@@ -3245,11 +3255,11 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                       </div>
 
                       {/* SECTION 1: Personal & Contact Information (with Passport Photo) */}
-                      <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-hairline shadow-2xs">
-                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-hairline/60">
+                      <div className="bg-white rounded-xl p-4 sm:p-5 border border-hairline shadow-2xs">
+                        <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-hairline/60">
                           <div className="flex items-center gap-2">
-                            <User size={14} className="text-[#FF6200]" />
-                            <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                            <User size={15} className="text-[#FF6200]" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-ink font-serif">
                               1. Personal & Contact Profile
                             </span>
                           </div>
@@ -3266,15 +3276,15 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           </button>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 items-start">
+                        <div className="flex flex-col md:flex-row gap-5 items-start">
                           {/* Cadre Passport Photo Preview */}
-                          <div className="flex-shrink-0 self-center sm:self-start flex flex-col items-center">
+                          <div className="flex-shrink-0 self-center md:self-start flex flex-col items-center">
                             {photoPreview ? (
                               <div className="relative group">
                                 <img
                                   src={photoPreview}
                                   alt="Cadre Photo"
-                                  className="w-20 h-24 rounded-xl object-cover border-2 border-[#FF6200] shadow-sm bg-white"
+                                  className="w-24 h-28 rounded-xl object-cover border-2 border-[#FF6200] shadow-sm bg-white"
                                 />
                                 <div
                                   className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white p-0.5 rounded-full shadow-xs"
@@ -3284,117 +3294,139 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="w-20 h-24 rounded-xl bg-surface-card border-2 border-dashed border-hairline flex flex-col items-center justify-center text-muted-editorial text-center p-1.5">
-                                <User size={26} className="text-muted-editorial/60" />
-                                <span className="text-[8px] mt-1 font-medium text-rose-500">No Photo</span>
+                              <div className="w-24 h-28 rounded-xl bg-surface-card border-2 border-dashed border-hairline flex flex-col items-center justify-center text-muted-editorial text-center p-1.5">
+                                <User size={28} className="text-muted-editorial/60" />
+                                <span className="text-[9px] mt-1 font-medium text-rose-500">No Photo</span>
                               </div>
                             )}
-                            <span className="text-[8.5px] font-semibold text-muted-editorial mt-1 uppercase tracking-wider">
+                            <span className="text-[9.5px] font-semibold text-muted-editorial mt-1.5 uppercase tracking-wider">
                               Cadre Photo
                             </span>
                           </div>
 
-                          {/* Personal Details Grid */}
-                          <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 text-xs">
+                          {/* Personal Details Grid: 3 columns on desktop, 1 on mobile */}
+                          <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                                 Full Legal Name
                               </span>
-                              <span className="font-bold text-ink text-sm sm:text-base leading-tight block">
+                              <span className="text-lg sm:text-xl font-bold text-ink leading-tight block">
                                 {formData.fullName || "—"}
                               </span>
                             </div>
 
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                                 Father / Husband Name
                               </span>
-                              <span className="font-semibold text-ink text-xs sm:text-sm block">
+                              <span className="text-base font-medium text-ink block leading-snug">
                                 {formData.fatherName || "—"}
                               </span>
                             </div>
 
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                                 Date of Birth
                               </span>
-                              <span className="font-semibold text-ink block">
+                              <span className="text-base font-medium text-ink block leading-snug">
                                 {formData.dob ? formatDobDisplay(formData.dob) : "—"}
                               </span>
                             </div>
 
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                                 Gender
                               </span>
-                              <span className="font-semibold text-ink block">{formData.gender || "—"}</span>
-                            </div>
-
-                            <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
-                                Blood Group
-                              </span>
-                              <span className="font-semibold text-ink block">
-                                {formData.bloodGroup ? (
-                                  <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                    {formData.bloodGroup}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-editorial">Not Specified</span>
-                                )}
+                              <span className="text-base font-medium text-ink block leading-snug">
+                                {formData.gender || "—"}
                               </span>
                             </div>
 
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                                Blood Group (Optional)
+                              </span>
+                              {formData.bloodGroup && formData.bloodGroup.trim() ? (
+                                <span className="text-base font-medium text-ink block leading-snug">
+                                  {formData.bloodGroup.trim()}
+                                </span>
+                              ) : (
+                                <span className="text-[#9CA3AF] italic text-base font-normal block leading-snug">
+                                  Not provided
+                                </span>
+                              )}
+                            </div>
+
+                            <div>
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                                 Primary Mobile
                               </span>
-                              <span className="font-mono font-bold text-ink text-xs sm:text-sm block">
+                              <span className="text-base font-medium text-ink block leading-snug">
                                 {formData.mobile ? `+91 ${formData.mobile}` : "—"}
                               </span>
                             </div>
 
                             <div>
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
-                                WhatsApp Number
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                                WhatsApp Number (Optional)
                               </span>
-                              <span className="font-medium text-ink truncate block">
-                                {sameAsMobile ? (
-                                  <span className="font-medium text-ink">Same as Mobile</span>
-                                ) : formData.whatsapp && formData.whatsapp.trim() ? (
-                                  formData.whatsapp.trim() === formData.mobile ? (
-                                    <span className="font-medium text-ink">Same as Mobile</span>
-                                  ) : (
-                                    <span className="font-mono font-bold text-ink">+91 {formData.whatsapp.trim()}</span>
-                                  )
+                              {sameAsMobile || (formData.whatsapp && formData.whatsapp.trim() === formData.mobile) ? (
+                                <span className="text-base font-medium text-ink block leading-snug">Same as Mobile</span>
+                              ) : formData.whatsapp && formData.whatsapp.trim() ? (
+                                <span className="text-base font-medium text-ink block leading-snug">
+                                  +91 {formData.whatsapp.trim()}
+                                </span>
+                              ) : (
+                                <span className="text-[#9CA3AF] italic text-base font-normal block leading-snug">
+                                  Not provided
+                                </span>
+                              )}
+                            </div>
+
+                            <div>
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                                Emergency Contact
+                              </span>
+                              <span className="text-base font-medium text-ink block leading-snug">
+                                {formData.emergencyNumber ? (
+                                  <>
+                                    +91 {formData.emergencyNumber}
+                                    {formData.emergencyRelation && (
+                                      <span className="text-muted-editorial text-xs font-normal ml-1">
+                                        ({formData.emergencyRelation})
+                                      </span>
+                                    )}
+                                  </>
                                 ) : (
-                                  <span className="text-muted-editorial italic">Not Provided</span>
+                                  "—"
                                 )}
                               </span>
                             </div>
 
-                            <div className="col-span-2 sm:col-span-2">
-                              <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
-                                Email Address
+                            <div>
+                              <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                                Email Address (Optional)
                               </span>
-                              <span className="font-medium text-ink truncate block">
-                                {formData.email ? (
-                                  formData.email
-                                ) : (
-                                  <span className="text-muted-editorial italic">Not Provided</span>
-                                )}
-                              </span>
+                              {formData.email && formData.email.trim() ? (
+                                <span className="text-base font-medium text-ink truncate block leading-snug">
+                                  {formData.email.trim()}
+                                </span>
+                              ) : (
+                                <span className="text-[#9CA3AF] italic text-base font-normal block leading-snug">
+                                  Not provided
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* SECTION 2: Address & Location */}
-                      <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-hairline shadow-2xs">
-                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-hairline/60">
+                      <div className="bg-white rounded-xl p-4 sm:p-5 border border-hairline shadow-2xs">
+                        <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-hairline/60">
                           <div className="flex items-center gap-2">
-                            <MapPin size={14} className="text-[#FF6200]" />
-                            <span className="text-xs font-bold uppercase tracking-wider text-ink">
+                            <MapPin size={15} className="text-[#FF6200]" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-ink font-serif">
                               2. Address & Location
                             </span>
                           </div>
@@ -3411,19 +3443,22 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2.5 text-xs">
+                        {/* Address Grid: 3 columns on desktop, 1 on mobile */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
                           <div>
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                               State Unit
                             </span>
-                            <span className="font-bold text-ink block">{formData.state || "—"}</span>
+                            <span className="text-base font-medium text-ink block leading-snug">
+                              {formData.state || "—"}
+                            </span>
                           </div>
 
                           <div>
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                               District Unit
                             </span>
-                            <span className="font-bold text-ink block">
+                            <span className="text-base font-medium text-ink block leading-snug">
                               {formData.district === "Other District" && customDistrict.trim()
                                 ? customDistrict.trim()
                                 : formData.district || "—"}
@@ -3431,39 +3466,65 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           </div>
 
                           <div>
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
-                              Taluk / Area
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                              Assembly Constituency
                             </span>
-                            <span className="font-semibold text-ink block">
-                              {formData.taluk?.trim() || "—"}
+                            <span className="text-base font-medium text-ink block leading-snug">
+                              {formData.assembly?.trim() || "—"}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
-                              Postal PIN Code
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                              Zone / Region
                             </span>
-                            <span className="font-mono font-bold text-ink block">{formData.pincode || "—"}</span>
+                            <span className="text-base font-medium text-ink block leading-snug">
+                              {formData.zone?.trim() || "—"}
+                            </span>
                           </div>
 
-                          <div className="col-span-2 sm:col-span-4 pt-2 border-t border-hairline/60">
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
+                          <div>
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                              Taluk / Area (Optional)
+                            </span>
+                            {formData.taluk && formData.taluk.trim() ? (
+                              <span className="text-base font-medium text-ink block leading-snug">
+                                {formData.taluk.trim()}
+                              </span>
+                            ) : (
+                              <span className="text-[#9CA3AF] italic text-base font-normal block leading-snug">
+                                Not provided
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                              Postal PIN Code
+                            </span>
+                            <span className="text-base font-medium text-ink block leading-snug">
+                              {formData.pincode || "—"}
+                            </span>
+                          </div>
+
+                          <div className="col-span-1 md:col-span-2">
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                               Full Residential Address
                             </span>
-                            <span className="font-medium text-ink block leading-relaxed">
+                            <span className="text-base font-medium text-ink block leading-relaxed">
                               {formData.address?.trim() || "—"}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* SECTION 3: Chosen Wing & Cadre Profession */}
-                      <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-hairline shadow-2xs">
-                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-hairline/60">
+                      {/* SECTION 3: Cadre Wing & Professional Details */}
+                      <div className="bg-white rounded-xl p-4 sm:p-5 border border-hairline shadow-2xs">
+                        <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-hairline/60">
                           <div className="flex items-center gap-2">
-                            <Briefcase size={14} className="text-[#FF6200]" />
-                            <span className="text-xs font-bold uppercase tracking-wider text-ink">
-                              3. Wing & Profession
+                            <Briefcase size={15} className="text-[#FF6200]" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-ink font-serif">
+                              3. Cadre Wing & Professional Details
                             </span>
                           </div>
                           <button
@@ -3479,25 +3540,30 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-[#fff9f4] border border-[#ffeedd] rounded-lg p-2.5">
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider mb-0.5">
+                        {/* Wing & Profession Grid: 3 columns on desktop, 1 on mobile */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                          <div>
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
                               Assigned MSD Wing
                             </span>
-                            <span className="font-serif font-black text-[#FF6200] text-sm sm:text-base block">
+                            <span className="text-base font-medium text-ink block leading-snug">
                               {formData.wing}
                             </span>
                           </div>
 
-                          <div className="bg-surface-soft/60 border border-hairline rounded-lg p-2.5">
-                            <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider mb-0.5">
-                              Profession / Occupation
+                          <div className="col-span-1 md:col-span-2">
+                            <span className="text-muted-editorial block text-[10px] uppercase font-bold tracking-wider mb-1">
+                              Profession / Occupation (Optional)
                             </span>
-                            <span className="font-semibold text-ink text-xs sm:text-sm block">
-                              {formData.profession.trim() || (
-                                <span className="text-muted-editorial font-medium">Not Specified</span>
-                              )}
-                            </span>
+                            {formData.profession && formData.profession.trim() ? (
+                              <span className="text-base font-medium text-ink block leading-snug">
+                                {formData.profession.trim()}
+                              </span>
+                            ) : (
+                              <span className="text-[#9CA3AF] italic text-base font-normal block leading-snug">
+                                Not provided
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3526,10 +3592,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                                 setTouchedFields((prev) => ({ ...prev, pledgeAccepted: true }));
                                 setFieldErrors((prev) => {
                                   const next = { ...prev };
-                                  if (checked) delete next.pledgeAccepted;
-                                  else next.pledgeAccepted = "Please accept the Maha Seva Dal 1947 Seva Pledge.";
+                                  if (checked) {
+                                    delete next.pledgeAccepted;
+                                  } else {
+                                    next.pledgeAccepted = "Please accept the Maha Seva Dal 1947 Seva Pledge.";
+                                  }
                                   return next;
                                 });
+                                if (checked) {
+                                  setErrorMsg((prev) => (prev.toLowerCase().includes("pledge") ? "" : prev));
+                                }
                               }}
                               className="mt-1 w-4 h-4 rounded text-[#FF6200] border-hairline focus:ring-[#FF6200]"
                             />
@@ -3551,10 +3623,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                                 setTouchedFields((prev) => ({ ...prev, termsAccepted: true }));
                                 setFieldErrors((prev) => {
                                   const next = { ...prev };
-                                  if (checked) delete next.termsAccepted;
-                                  else next.termsAccepted = "Please agree to the Terms & Conditions and Privacy Policy.";
+                                  if (checked) {
+                                    delete next.termsAccepted;
+                                  } else {
+                                    next.termsAccepted = "Please agree to the Terms & Conditions and Privacy Policy.";
+                                  }
                                   return next;
                                 });
+                                if (checked) {
+                                  setErrorMsg((prev) => (prev.toLowerCase().includes("terms") ? "" : prev));
+                                }
                               }}
                               className="mt-1 w-4 h-4 rounded text-[#FF6200] border-hairline focus:ring-[#FF6200]"
                             />
@@ -3743,7 +3821,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                       </p>
 
                       {/* Member Details */}
-                      <div className="bg-white/80 border border-amber-200 rounded-xl p-4 mt-6 text-left grid grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white/80 border border-amber-200 rounded-xl p-4 mt-6 text-left grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                         <div>
                           <span className="text-muted-editorial block">Registration ID</span>
                           <span className="font-mono font-bold text-ink">{statusResult.registrationId}</span>
@@ -3757,8 +3835,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           <span className="font-medium text-ink">{statusResult.wing}</span>
                         </div>
                         <div>
-                          <span className="text-muted-editorial block">Region</span>
+                          <span className="text-muted-editorial block">State & District</span>
                           <span className="font-medium text-ink">{statusResult.district}, {statusResult.state}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-editorial block">Assembly Constituency</span>
+                          <span className="font-medium text-ink">{statusResult.assembly || "—"}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-editorial block">Zone / Region</span>
+                          <span className="font-medium text-ink">{statusResult.zone || "—"}</span>
                         </div>
                       </div>
 
@@ -3796,7 +3882,23 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                         Your application could not be verified by the committee at this time. For clarification or to re-apply with corrected credentials, please reach out to the Maha Seva Dal Secretariat.
                       </p>
 
-                      <div className="bg-white/80 border border-rose-200 rounded-xl p-4 mt-6 text-left grid grid-cols-2 gap-3 text-xs">
+                      {/* Rejection Reason / Secretariat Remark Callout */}
+                      {(statusResult.rejectReason || statusResult.adminNotes) && (
+                        <div className="bg-white border-2 border-rose-300 rounded-xl p-4 mt-4 text-left shadow-2xs">
+                          <div className="flex items-center gap-1.5 text-rose-800 font-bold text-xs uppercase tracking-wider mb-1.5">
+                            <AlertCircle size={15} className="text-rose-600 shrink-0" />
+                            <span>Reason for Rejection / Secretariat Remark:</span>
+                          </div>
+                          <div className="p-3 bg-rose-50/80 border border-rose-200 rounded-lg text-rose-950 font-semibold text-xs leading-relaxed whitespace-pre-wrap">
+                            {statusResult.rejectReason || statusResult.adminNotes}
+                          </div>
+                          <p className="text-[11px] text-muted-editorial mt-2">
+                            Please rectify the issue mentioned above before submitting a fresh application.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="bg-white/80 border border-rose-200 rounded-xl p-4 mt-4 text-left grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <span className="text-muted-editorial block">Registration ID</span>
                           <span className="font-mono font-bold text-ink">{statusResult.registrationId}</span>
@@ -3805,9 +3907,21 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                           <span className="text-muted-editorial block">Full Name</span>
                           <span className="font-semibold text-ink">{statusResult.fullName}</span>
                         </div>
+                        {statusResult.wing && (
+                          <div>
+                            <span className="text-muted-editorial block">Wing Applied</span>
+                            <span className="font-medium text-ink">{statusResult.wing}</span>
+                          </div>
+                        )}
+                        {statusResult.state && (
+                          <div>
+                            <span className="text-muted-editorial block">Region</span>
+                            <span className="font-medium text-ink">{statusResult.district ? `${statusResult.district}, ` : ""}{statusResult.state}</span>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="mt-5">
+                      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                         <button
                           type="button"
                           onClick={() => {
@@ -3815,9 +3929,16 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                             setStep(1);
                             setRegisteredMember(null);
                           }}
-                          className="btn-secondary text-xs px-4 py-2 font-medium"
+                          className="btn-primary-coral text-xs px-4 py-2 font-semibold"
                         >
                           Submit New Application
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSupportModalOpen(true)}
+                          className="btn-secondary text-xs px-4 py-2 font-medium cursor-pointer"
+                        >
+                          Contact Secretariat Support
                         </button>
                       </div>
                     </div>
@@ -3851,7 +3972,6 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
                         <DigitalIdCard
                           member={statusResult}
                           qrDataUrl={statusQrUrl}
-                          showViewToggle={true}
                           defaultView="both"
                         />
                       </div>
@@ -3873,6 +3993,75 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
         onUseOriginal={() => setCropModalOpen(false)}
         title="Official ID Photo Framing"
       />
+
+      {/* ─── OFFICIAL SECRETARIAT DETAILS POPUP MODAL (SIMPLE ONLY) ────────── */}
+      {supportModalOpen && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSupportModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl border border-hairline shadow-2xl max-w-sm w-full p-6 relative animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setSupportModalOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-full text-muted-editorial hover:text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+              title="Close"
+            >
+              <X size={16} />
+            </button>
+
+            {/* Title */}
+            <h3 className="font-serif text-lg font-bold text-ink mb-5 tracking-tight">
+              Official Secretariat
+            </h3>
+
+            {/* Simple Details List */}
+            <ul className="space-y-4 text-xs text-body">
+              <li className="flex items-start gap-3">
+                <MapPin size={16} className="text-[#FF6200] flex-shrink-0 mt-0.5" />
+                <span className="leading-relaxed text-ink">
+                  Maha Seva Dal Secretariat, Head Office, India
+                </span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail size={16} className="text-[#FF6200] flex-shrink-0" />
+                <a
+                  href="mailto:mahasevadalorganization@gmail.com"
+                  className="hover:text-[#FF6200] transition-colors break-all font-medium text-ink"
+                >
+                  mahasevadalorganization@gmail.com
+                </a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone size={16} className="text-[#FF6200] flex-shrink-0" />
+                <a
+                  href="tel:+919994625690"
+                  className="hover:text-[#FF6200] transition-colors font-mono font-medium text-ink"
+                >
+                  +91 9994625690
+                </a>
+              </li>
+            </ul>
+
+            {/* Simple Close Button */}
+            <div className="mt-6 pt-4 border-t border-hairline flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSupportModalOpen(false)}
+                className="btn-primary-coral text-xs px-4 py-1.5 font-semibold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 };

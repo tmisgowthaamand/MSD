@@ -14,10 +14,16 @@ const connectDB = async () => {
       console.error("❌ Fatal: MONGODB_URI is not defined in environment variables.");
       process.exit(1);
     }
+    const startTime = Date.now();
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 4000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      socketTimeoutMS: 45000,
+      family: 4, // Fast IPv4 resolution on Windows & Cloud
     });
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
+    const duration = Date.now() - startTime;
+    console.log(`✅ [PASS] MongoDB Connected in ${duration}ms: ${conn.connection.host}/${conn.connection.name}`);
     return conn;
   } catch (error) {
     console.error(`❌ Fatal MongoDB Connection Error: ${error.message}`);

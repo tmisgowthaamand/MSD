@@ -129,4 +129,56 @@ test("Public status check PII protection and flexible lookup (F13)", async (t) =
     const body = await res.json();
     assert.strictEqual(body.member.registrationId, "MSD-MH-2026-0001");
   });
+
+  await t.test("returns rejectReason when application is REJECTED", async () => {
+    Member.findOne = () => ({
+      lean: async () => ({
+        registrationId: "MSD-MH-2026-0002",
+        fullName: "Sanjay Deshmukh",
+        status: "REJECTED",
+        adminNotes: "Duplicate application • Photo invalid",
+        wing: "Youth Wing",
+        state: "Maharashtra",
+        district: "Pune",
+      }),
+    });
+
+    const res = await fetch(`${baseUrl}/api/members/status?query=MSD-MH-2026-0002`);
+    assert.strictEqual(res.status, 200);
+    const body = await res.json();
+    assert.strictEqual(body.member.status, "REJECTED");
+    assert.strictEqual(body.member.rejectReason, "Duplicate application • Photo invalid");
+  });
+
+  await t.test("rejects status update to REJECTED if remarks are missing or empty with 400", async () => {
+    const { updateMemberStatus } = require("../controllers/memberController");
+    const fakeMember = { status: "PENDING", adminNotes: "", save: async () => fakeMember };
+    const originalFindById = Member.findById;
+    Member.findById = async () => fakeMember;
+
+    let statusCode;
+    let jsonResult;
+    const req = {
+      params: { id: "507f1f77bcf86cd799439011" },
+      body: { status: "REJECTED", adminNotes: "   " },
+      admin: { username: "admin" },
+    };
+    const res = {
+      status(code) {
+        statusCode = code;
+        return this;
+      },
+      json(data) {
+        jsonResult = data;
+        return this;
+      },
+    };
+
+    await updateMemberStatus(req, res);
+    Member.findById = originalFindById;
+
+    assert.strictEqual(statusCode, 400);
+    assert.match(jsonResult.error, /compulsory/i);
+  });
 });
+

@@ -6,7 +6,7 @@
     {
       "nodeId": "root",
       "type": "interactive",
-      "name": "Root Node",
+      "name": "Maha Seva Dal Official Menu",
       "interactiveId": null,
       "keywords": [
         "Hi",
@@ -24,92 +24,43 @@
       ],
       "parentNodeId": null,
       "data": {
-        "interactiveType": "button",
+        "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Maha Seva Dal"
         },
-        "body": "Welcome to Maha Seva Dal (Unity of People's).\n\nDedicated to selfless community service, healthcare, child welfare, legal empowerment, and youth development.\n\nHow can we serve together today?",
+        "body": "Welcome to Maha Seva Dal (Unity of People's).\nEstd. 1947 · National Socio-Cultural Cadre Registry.\n\nDedicated to constitutional unity, community seva, healthcare, child welfare, and civic empowerment.\n\nPlease choose an option below to continue:",
         "footer": "Select an option below",
         "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "86a7cca2-db03-4950-9b40-8673c376a3b4",
-                "title": "Join Maha Seva Dal"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "ed27b447-ff7a-4df1-a037-df50352c5a1a",
-                "title": "Seva Wings & Causes"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "df807006-f2b7-4d1f-9998-77af9a72918b",
-                "title": "Member Services"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "type": "interactive",
-      "name": "Register: Select Wing",
-      "interactiveId": "86a7cca2-db03-4950-9b40-8673c376a3b4",
-      "keywords": [
-        "Join Maha Seva Dal"
-      ],
-      "parentNodeId": "root",
-      "data": {
-        "interactiveType": "list",
-        "header": {
-          "type": "text",
-          "text": "MSD Volunteer Wings"
-        },
-        "body": "Please select the Seva Wing you wish to join and dedicate your voluntary service towards:",
-        "footer": "Choose 1 wing to continue",
-        "action": {
-          "button": "Choose Seva Wing",
+          "button": "Choose Service",
           "sections": [
             {
-              "title": "Available Wings",
+              "title": "Cadre Services & Portal",
               "rows": [
                 {
-                  "id": "59bb6aae-9389-4a6f-9fe7-47ea49006ae7",
-                  "title": "Legal Wing",
-                  "description": "Free legal aid, citizen rights awareness, community justice"
+                  "id": "8ee63965-1917-47bd-83a6-1b416b965731",
+                  "title": "Cadre Registration",
+                  "description": "New volunteer cadre enrollment & registration"
                 },
                 {
-                  "id": "6be62bbd-7b98-4c48-8c67-5eecd8d71603",
-                  "title": "Medical & Health",
-                  "description": "Free medical camps, blood donation drives, health checkups"
+                  "id": "d06c03de-51b7-4433-a314-758f6f9e03e2",
+                  "title": "My Cadre ID Card",
+                  "description": "Check approval status & get Digital ID Card"
                 },
                 {
-                  "id": "701bbd8a-ec58-409d-b9cf-fa3d2d0f99b5",
-                  "title": "Education & Child Care",
-                  "description": "Child welfare, study materials, student mentorship"
+                  "id": "c8d35c09-d351-45b2-9c44-d8b210d2c2f8",
+                  "title": "History & Ideology",
+                  "description": "Estd. 1947 · Unity of People & Sardar Patel"
                 },
                 {
-                  "id": "1b95de6f-798a-455b-9c3f-9fa993f967c5",
-                  "title": "Youth & Sports Wing",
-                  "description": "Youth leadership, sports tournaments, fitness awareness"
+                  "id": "91815fec-07be-429e-9fd8-414d1c26b83c",
+                  "title": "Our Official Website",
+                  "description": "Visit mahasevadal.com & digital portals"
                 },
                 {
-                  "id": "a4959ac4-7989-43a3-a868-2f2300c5fbd3",
-                  "title": "Community & Mahaprasad",
-                  "description": "Annadanam, community food drives, emergency relief aid"
-                },
-                {
-                  "id": "e1f54beb-8150-4b39-85f3-ffc5133e5b4b",
-                  "title": "General Seva Cadre",
-                  "description": "General volunteering, field assistance, event coordination"
+                  "id": "21f645fe-4df4-412e-b52d-54cb69cd32a2",
+                  "title": "Donate & Support",
+                  "description": "Official UPI QR & Donation Payment Invoice"
                 }
               ]
             }
@@ -118,42 +69,42 @@
       }
     },
     {
-      "nodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "nodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
       "type": "interactive",
-      "name": "Register: Confirm Details",
-      "interactiveId": null,
+      "name": "Register: Personal Profile",
+      "interactiveId": "8ee63965-1917-47bd-83a6-1b416b965731",
       "keywords": [
-        "District Selected"
+        "Cadre Registration"
       ],
-      "parentNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
+      "parentNodeId": "root",
       "data": {
         "interactiveType": "button",
         "header": {
           "type": "text",
-          "text": "Registration Summary"
+          "text": "1. Personal Profile"
         },
-        "body": "Thank you for choosing to serve with Maha Seva Dal!\n\nYour Seva Wing and District have been recorded.\n\nTap 'Confirm Registration' to complete your enrollment and receive your unique Member ID.",
+        "body": "👤 Step 1 of 4: Personal & Contact Profile\nProvide official legal name and contact details as registered in identification documents:\n\n• Full Legal Name\n• Father's / Husband's Name\n• Date of Birth & Gender\n• Primary Mobile Number & WhatsApp\n• Email Address (Optional)\n• Blood Group (Optional: recommended for emergency use)\n\n🚨 Emergency Contact Details (Compulsory):\n• Emergency Contact Number\n• Relationship with Member (Mother / Father / Spouse)\n\nTap 'Fill Profile Form' to enter manual details or 'Proceed to Address' to continue:",
         "footer": "Maha Seva Dal Foundation",
         "action": {
           "buttons": [
             {
               "type": "reply",
               "reply": {
-                "id": "f84bb9c5-1b93-4d63-9c87-5a9c1c36ffbe",
-                "title": "Confirm Registration"
+                "id": "298123b4-2c8d-4578-8a7f-5d1616da4ee6",
+                "title": "Fill Profile Form"
               }
             },
             {
               "type": "reply",
               "reply": {
-                "id": "deb9ec9c-209b-467c-b7b3-ac00c8500c7d",
-                "title": "Change Wing"
+                "id": "1b23db53-78bd-48f1-9c5e-38d898f100b8",
+                "title": "Proceed to Address"
               }
             },
             {
               "type": "reply",
               "reply": {
-                "id": "969ff292-0c05-4fe0-b959-b19e612a8699",
+                "id": "ecfd6f62-16bb-40ab-8884-6c425d1a68e4",
                 "title": "Main Menu"
               }
             }
@@ -162,75 +113,546 @@
       }
     },
     {
-      "nodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
+      "nodeId": "fca37747-c5ed-40a6-b5df-60f283330317",
+      "type": "interactive",
+      "name": "Register: Manual Profile Entry",
+      "interactiveId": "298123b4-2c8d-4578-8a7f-5d1616da4ee6",
+      "keywords": [
+        "Fill Profile Form"
+      ],
+      "parentNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "📝 Manual Profile Entry"
+        },
+        "body": "Please enter your manual profile details in the chat or use the interactive form:\n\n1. Full Legal Name\n2. Father's / Husband's Name\n3. Date of Birth & Gender\n4. Primary Mobile & WhatsApp\n5. Compulsory Emergency Contact & Relationship\n\nTap 'Proceed to Address' when done:",
+        "footer": "Maha Seva Dal Foundation",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "7bc48a5b-986e-4536-8ced-1eb1594c1f5a",
+                "title": "Proceed to Address"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "bfb51b26-fb33-4b27-af51-593cc85a24f3",
+                "title": "Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "type": "interactive",
+      "name": "Select State — Page 1/4 (A–D)",
+      "interactiveId": "1b23db53-78bd-48f1-9c5e-38d898f100b8",
+      "keywords": [
+        "Proceed to Address"
+      ],
+      "parentNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
+      "data": {
+        "interactiveType": "list",
+        "header": {
+          "type": "text",
+          "text": "Select State (A–D)"
+        },
+        "body": "📍 Step 2 of 4: Location & Residential Address\nSelect your State / UT in Alphabetical Order (Page 1/4: A–D):\n\nYour state determines your Pradesh Cadre Committee.",
+        "footer": "Maha Seva Dal · Pan-India (1/4)",
+        "action": {
+          "button": "Choose State (A–D)",
+          "sections": [
+            {
+              "title": "States & UTs (A–D)",
+              "rows": [
+                {
+                  "id": "e583b4ed-d062-4186-8ec8-809795c057f6",
+                  "title": "Andaman and Nicobar",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "cd52dd83-b02c-42ec-9a91-034b99ec07c0",
+                  "title": "Andhra Pradesh",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "3678abe4-7f89-4304-aa50-676a7c469b79",
+                  "title": "Arunachal Pradesh",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "394f57cd-2efa-463b-b610-7f29bd89bad6",
+                  "title": "Assam",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "92705c8c-6f48-4555-802e-c4c80bd95778",
+                  "title": "Bihar",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "303403cd-c4ae-432a-a20b-d693a94af185",
+                  "title": "Chandigarh",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "da443231-5913-4250-b6d6-2e966eeb7af7",
+                  "title": "Chhattisgarh",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "6f96864d-877a-4012-b720-b10eb1bd2feb",
+                  "title": "Dadra & Nagar Haveli",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "6d3e995e-3311-4c4a-88eb-be25ababef80",
+                  "title": "Delhi",
+                  "description": "National Capital Territory"
+                },
+                {
+                  "id": "ac3815c4-b5a8-4469-8cbc-6ce6bf3bb99f",
+                  "title": "More States (2/4) →",
+                  "description": "Goa to Ladakh (G–L)"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "type": "interactive",
+      "name": "Select State — Page 2/4 (G–L)",
+      "interactiveId": "ac3815c4-b5a8-4469-8cbc-6ce6bf3bb99f",
+      "keywords": [
+        "More States (2/4) →"
+      ],
+      "parentNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "data": {
+        "interactiveType": "list",
+        "header": {
+          "type": "text",
+          "text": "Select State (G–L)"
+        },
+        "body": "Select your State / UT in Alphabetical Order (Page 2/4: G–L):\n\nYour state determines your Pradesh Cadre Committee.",
+        "footer": "Maha Seva Dal · Pan-India (2/4)",
+        "action": {
+          "button": "Choose State (G–L)",
+          "sections": [
+            {
+              "title": "States & UTs (G–L)",
+              "rows": [
+                {
+                  "id": "ca6a5d49-5417-4e03-a44a-5ea5ec30aac8",
+                  "title": "Goa",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "b45accc4-a7d6-4b3e-9364-c287a9c50d18",
+                  "title": "Gujarat",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "7170fb31-48fa-4530-83c6-f949821bf951",
+                  "title": "Haryana",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "0d6f6aea-125e-418b-b3ed-5fedaa50fa75",
+                  "title": "Himachal Pradesh",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "69b31bca-40cf-40d1-97a6-9c4ba897f71f",
+                  "title": "Jammu & Kashmir",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "8f1a79a8-3e57-49cd-885a-1cee3af3f811",
+                  "title": "Jharkhand",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "df3e4dff-c00e-49ec-a951-0723cff676aa",
+                  "title": "Karnataka",
+                  "description": "Pradesh Unit (31 Districts)"
+                },
+                {
+                  "id": "d55efae5-6e91-4cb9-b967-95d5fcc0b4ed",
+                  "title": "Kerala",
+                  "description": "Pradesh Unit (14 Districts)"
+                },
+                {
+                  "id": "472a2698-fcb0-4bbb-9ffc-b410485a7e85",
+                  "title": "Ladakh",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "128d86c3-077a-4222-b04a-f17dbe16adb4",
+                  "title": "More States (3/4) →",
+                  "description": "Lakshadweep to Puducherry (L–P)"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "type": "interactive",
+      "name": "Select State — Page 3/4 (L–P)",
+      "interactiveId": "128d86c3-077a-4222-b04a-f17dbe16adb4",
+      "keywords": [
+        "More States (3/4) →"
+      ],
+      "parentNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "data": {
+        "interactiveType": "list",
+        "header": {
+          "type": "text",
+          "text": "Select State (L–P)"
+        },
+        "body": "Select your State / UT in Alphabetical Order (Page 3/4: L–P):\n\nYour state determines your Pradesh Cadre Committee.",
+        "footer": "Maha Seva Dal · Pan-India (3/4)",
+        "action": {
+          "button": "Choose State (L–P)",
+          "sections": [
+            {
+              "title": "States & UTs (L–P)",
+              "rows": [
+                {
+                  "id": "94d81f76-08b0-4cfc-95dc-fa5a82ca82ae",
+                  "title": "Lakshadweep",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "a1c96d25-96fc-400b-9439-c40277feeff5",
+                  "title": "Madhya Pradesh",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "777ef263-9b1a-4c84-9ac1-449a3a6e028f",
+                  "title": "Maharashtra",
+                  "description": "Pradesh Unit (36 Districts)"
+                },
+                {
+                  "id": "0fdd0747-9d75-4d71-8873-5dd8752049f8",
+                  "title": "Manipur",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "7b3e3366-cd8a-4f6f-b411-c94aaa3a4f12",
+                  "title": "Meghalaya",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "8cea0f49-ea45-45b5-89b5-f3cb07e535ab",
+                  "title": "Mizoram",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "a3098f5e-2011-4136-b7b1-497b9aae2b69",
+                  "title": "Nagaland",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "7d058c3d-8edd-4a81-8db0-297579697430",
+                  "title": "Odisha",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "320b2f02-1d3e-486b-a5e4-59645f80ded0",
+                  "title": "Puducherry",
+                  "description": "Union Territory"
+                },
+                {
+                  "id": "3a79374e-14a9-469d-ac52-bb204709d8c8",
+                  "title": "More States (4/4) →",
+                  "description": "Punjab to West Bengal (P–W)"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "type": "interactive",
+      "name": "Select State — Page 4/4 (P–W)",
+      "interactiveId": "3a79374e-14a9-469d-ac52-bb204709d8c8",
+      "keywords": [
+        "More States (4/4) →"
+      ],
+      "parentNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "data": {
+        "interactiveType": "list",
+        "header": {
+          "type": "text",
+          "text": "Select State (P–W)"
+        },
+        "body": "Select your State / UT in Alphabetical Order (Page 4/4: P–W):\n\nYour state determines your Pradesh Cadre Committee.",
+        "footer": "Maha Seva Dal · Pan-India (4/4)",
+        "action": {
+          "button": "Choose State (P–W)",
+          "sections": [
+            {
+              "title": "States & UTs (P–W)",
+              "rows": [
+                {
+                  "id": "73147ea6-39bc-41ac-b4b5-73864268a964",
+                  "title": "Punjab",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "beef3ad5-6558-4dbc-b729-ab13a134b00e",
+                  "title": "Rajasthan",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "65cb4ca1-7319-40b0-9977-3d82ae418c06",
+                  "title": "Sikkim",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "5f64aba7-1abe-4c7e-a789-6865a7f11e8a",
+                  "title": "Tamil Nadu",
+                  "description": "Pradesh Unit (38 Districts)"
+                },
+                {
+                  "id": "13d8a825-9820-475c-bb7f-a905260161d6",
+                  "title": "Telangana",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "e7ff203c-7f17-4812-81b9-1ae3ac1adae9",
+                  "title": "Tripura",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "74c8be2c-eef7-4481-9302-708658410dcc",
+                  "title": "Uttar Pradesh",
+                  "description": "Pradesh Unit (75 Districts)"
+                },
+                {
+                  "id": "e8a7b34d-06a9-402f-b2ad-3bbcdfca9fa6",
+                  "title": "Uttarakhand",
+                  "description": "Pradesh Unit"
+                },
+                {
+                  "id": "fba90dea-01a3-4db4-a6fd-e8a6fcba8d28",
+                  "title": "West Bengal",
+                  "description": "Pradesh Unit"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "type": "interactive",
+      "name": "Select District — Karnataka",
+      "interactiveId": "df3e4dff-c00e-49ec-a951-0723cff676aa",
+      "keywords": [
+        "Karnataka"
+      ],
+      "parentNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "data": {
+        "interactiveType": "list",
+        "header": {
+          "type": "text",
+          "text": "Karnataka Districts (A–Z)"
+        },
+        "body": "Select your District Unit in Karnataka Pradesh (A–Z):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Maha Seva Dal Karnataka",
+        "action": {
+          "button": "Choose District",
+          "sections": [
+            {
+              "title": "Karnataka Districts A–Z",
+              "rows": [
+                {
+                  "id": "1cfda2ae-9aba-4eec-8cc7-e02aad199008",
+                  "title": "Bagalkot District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "c1bd3f99-16f4-4834-95ac-ba7fa17e88a5",
+                  "title": "Ballari District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "1c7d4e76-1e7f-4ee6-b740-440a59e6b7ed",
+                  "title": "Belagavi District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "adf3c68a-e2c8-4748-a632-942dbb8a1ac0",
+                  "title": "Bengaluru Rural Dist",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "71dfec5a-0c90-497b-8bc9-fcd89eba6984",
+                  "title": "Bengaluru Urban Dist",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "35c67fe7-1245-4d0a-9519-2f37fb3cdc27",
+                  "title": "Bidar District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "702a1b44-e82e-4a5d-8982-9137e2b81c09",
+                  "title": "Kalaburagi District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "0c978966-30f3-4e6f-b299-e0183a6b020d",
+                  "title": "Mysuru District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "6c670ee8-1204-464c-afd5-d967360a8732",
+                  "title": "Tumakuru District",
+                  "description": "Karnataka Cadre Unit"
+                },
+                {
+                  "id": "30243f9f-53bd-4992-87be-95bc0c607872",
+                  "title": "Other Karnataka Dist",
+                  "description": "Karnataka Cadre Unit"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "type": "interactive",
+      "name": "Register: Address & PIN",
+      "interactiveId": null,
+      "keywords": [
+        "District Unit Selected"
+      ],
+      "parentNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "2. Address & Location"
+        },
+        "body": "📍 Step 2 of 4: Location & Residential Address\nYour State and District determine your local cadre committee and seva coordination:\n\n• State / UT: Recorded\n• District Unit: Recorded\n• Taluk / Sub-District / Area\n• Postal PIN Code (6-digit)\n• Full Residential Address\n\nTap 'Choose Seva Wing' to continue or change location:",
+        "footer": "Maha Seva Dal Foundation",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "5a2126a3-fcd2-4d57-acf5-911ac43a22e9",
+                "title": "Choose Seva Wing"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "887488e9-639a-4dc5-b2ea-cff0a88ada30",
+                "title": "Change State / UT"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "00589438-9d8c-4d37-9a5e-2f64a93ee5f4",
+                "title": "Back to Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
       "type": "interactive",
       "name": "Select District — Page 1/5",
       "interactiveId": null,
       "keywords": [
         "Select District — Page 1/5"
       ],
-      "parentNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
+      "parentNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Select Your District"
         },
-        "body": "Please select your district for local volunteer coordination (Page 1/5):",
-        "footer": "Tap an option below",
+        "body": "Select your District Unit in Tamil Nadu (Page 1/5):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Choose your district",
         "action": {
-          "button": "Select District",
+          "button": "Choose District",
           "sections": [
             {
-              "title": "Districts",
+              "title": "Tamil Nadu Districts",
               "rows": [
                 {
-                  "id": "99b1a43a-27a8-4fdf-9937-35c337b63359",
+                  "id": "9f8a2d7b-27e4-497d-a9f7-007169143016",
                   "title": "Ariyalur District",
                   "description": "Maha Seva Dal - Ariyalur"
                 },
                 {
-                  "id": "190b1c53-2e3c-465f-995e-ff8d8803bc07",
+                  "id": "c7176109-2271-44f4-9633-4dfa934abfe9",
                   "title": "Chengalpattu District",
                   "description": "Maha Seva Dal - Chengalpattu"
                 },
                 {
-                  "id": "5bd48d96-719b-4a56-98b4-225b31c11c76",
+                  "id": "e40f7800-73db-41da-8944-41642fdfa2ff",
                   "title": "Chennai District",
                   "description": "Maha Seva Dal - Chennai"
                 },
                 {
-                  "id": "ef1422b3-a8cd-4499-ae7b-822720e25d06",
+                  "id": "896f65b0-cfca-458c-8fd1-1e01902d488e",
                   "title": "Coimbatore District",
                   "description": "Maha Seva Dal - Coimbatore"
                 },
                 {
-                  "id": "34be0482-1cb5-47c4-a9ba-c6617e1c11b5",
+                  "id": "4eca7e1c-71b0-4cb7-953a-e86378e909e1",
                   "title": "Cuddalore District",
                   "description": "Maha Seva Dal - Cuddalore"
                 },
                 {
-                  "id": "ee252543-12f8-4467-ad28-2ca3470e8bd1",
+                  "id": "88bcfbd1-70c3-474a-b449-9a4dfb40938c",
                   "title": "Dharmapuri District",
                   "description": "Maha Seva Dal - Dharmapuri"
                 },
                 {
-                  "id": "c6882b0f-5004-489f-a1f9-6680d6f547d4",
+                  "id": "58ff4969-ac0f-4143-b052-ac30a550b045",
                   "title": "Dindigul District",
                   "description": "Maha Seva Dal - Dindigul"
                 },
                 {
-                  "id": "b0c7cc87-71d7-4400-b4fa-59c0de7034de",
+                  "id": "120aaafd-82e9-49b0-84e2-d622f136c492",
                   "title": "Erode District",
                   "description": "Maha Seva Dal - Erode"
                 },
                 {
-                  "id": "c50cfac9-1f9c-435a-96cf-1ec73bcf9229",
+                  "id": "e81f3e14-c1e3-474e-aac5-36cbd8ed4aee",
                   "title": "Kallakurichi District",
                   "description": "Maha Seva Dal - Kallakurichi"
                 },
                 {
-                  "id": "6596793b-eb11-4679-a58c-fc96014066e2",
+                  "id": "926e83ea-69f0-4dfc-83bd-b550cb66e14d",
                   "title": "More Districts (2/5)",
                   "description": "View more districts in Tamil Nadu"
                 }
@@ -241,75 +663,75 @@
       }
     },
     {
-      "nodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
+      "nodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
       "type": "interactive",
       "name": "Select District — Page 2/5",
       "interactiveId": null,
       "keywords": [
         "Select District — Page 2/5"
       ],
-      "parentNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
+      "parentNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Select Your District"
         },
-        "body": "Please select your district for local volunteer coordination (Page 2/5):",
-        "footer": "Tap an option below",
+        "body": "Select your District Unit in Tamil Nadu (Page 2/5):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Choose your district",
         "action": {
-          "button": "Select District",
+          "button": "Choose District",
           "sections": [
             {
-              "title": "Districts",
+              "title": "Tamil Nadu Districts",
               "rows": [
                 {
-                  "id": "089c89d1-b1e2-4926-8525-7c6f32f8457a",
+                  "id": "28bb6e53-eed9-48e0-b366-5015f13ce561",
                   "title": "Kanchipuram District",
                   "description": "Maha Seva Dal - Kanchipuram"
                 },
                 {
-                  "id": "1ef4e38e-e192-49d0-a9e2-34f5643168c5",
+                  "id": "906252ad-2bab-4094-a481-127d444914bd",
                   "title": "Kanyakumari District",
                   "description": "Maha Seva Dal - Kanyakumari"
                 },
                 {
-                  "id": "b97f4307-4b5f-42ca-9524-59a09ea81fc3",
+                  "id": "b20cb9bc-25e8-4fa3-80d2-e10e68f5409e",
                   "title": "Karur District",
                   "description": "Maha Seva Dal - Karur"
                 },
                 {
-                  "id": "56b9ce7f-977e-4e1c-a364-880af63bea45",
+                  "id": "8ccc184f-eb94-433b-bc00-918ce59cce58",
                   "title": "Krishnagiri District",
                   "description": "Maha Seva Dal - Krishnagiri"
                 },
                 {
-                  "id": "e52245e1-dde1-4f7b-bcb6-3a1534ee7907",
+                  "id": "ef71c078-083d-43f2-bbdc-68e341beef65",
                   "title": "Madurai District",
                   "description": "Maha Seva Dal - Madurai"
                 },
                 {
-                  "id": "07fdbd94-12ce-4220-8282-9607bfbc27f8",
+                  "id": "d09dc493-e0ff-4e47-84c0-ce0e68ec88c8",
                   "title": "Mayiladuthurai District",
                   "description": "Maha Seva Dal - Mayiladuthurai"
                 },
                 {
-                  "id": "73973484-77e1-4d88-9183-29b825ac4598",
+                  "id": "abc621db-9600-48fe-9591-f3c1edc10d2d",
                   "title": "Nagapattinam District",
                   "description": "Maha Seva Dal - Nagapattinam"
                 },
                 {
-                  "id": "63f75321-eaee-4e88-bc40-63fb705c71d2",
+                  "id": "e73d074d-616f-413b-830d-fa52edf1f945",
                   "title": "Namakkal District",
                   "description": "Maha Seva Dal - Namakkal"
                 },
                 {
-                  "id": "9337474f-8c12-4662-ada4-21b9dee65ff8",
+                  "id": "56f3e0c9-4759-4069-a031-56fde4fd62c3",
                   "title": "Nilgiris District",
                   "description": "Maha Seva Dal - Nilgiris"
                 },
                 {
-                  "id": "3ae27175-b0d7-44ab-9310-ea415347720f",
+                  "id": "7bce138b-a4dc-4853-bc14-9a42c653fe3a",
                   "title": "More Districts (3/5)",
                   "description": "View more districts in Tamil Nadu"
                 }
@@ -320,75 +742,75 @@
       }
     },
     {
-      "nodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
+      "nodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
       "type": "interactive",
       "name": "Select District — Page 3/5",
       "interactiveId": null,
       "keywords": [
         "Select District — Page 3/5"
       ],
-      "parentNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
+      "parentNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Select Your District"
         },
-        "body": "Please select your district for local volunteer coordination (Page 3/5):",
-        "footer": "Tap an option below",
+        "body": "Select your District Unit in Tamil Nadu (Page 3/5):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Choose your district",
         "action": {
-          "button": "Select District",
+          "button": "Choose District",
           "sections": [
             {
-              "title": "Districts",
+              "title": "Tamil Nadu Districts",
               "rows": [
                 {
-                  "id": "974eb9d5-f0df-463f-9079-52b4be4bc1cd",
+                  "id": "b56e782e-a463-4403-bf2c-77cf5181d802",
                   "title": "Perambalur District",
                   "description": "Maha Seva Dal - Perambalur"
                 },
                 {
-                  "id": "141a2a9e-c9a5-45c3-9671-43295db1368e",
+                  "id": "845dc6c4-50ad-427e-b3b0-4c7229b18ace",
                   "title": "Pudukkottai District",
                   "description": "Maha Seva Dal - Pudukkottai"
                 },
                 {
-                  "id": "370eccb0-db6c-4a8d-a893-0f8b4c03622d",
+                  "id": "b412a85d-66ad-4765-891e-cd4b200db426",
                   "title": "Ramanathapuram District",
                   "description": "Maha Seva Dal - Ramanathapuram"
                 },
                 {
-                  "id": "7ee177a3-41d3-4784-b87c-fcec77d608ec",
+                  "id": "ee82ab5c-5703-4368-bbf7-67f5e3c89f3d",
                   "title": "Ranipet District",
                   "description": "Maha Seva Dal - Ranipet"
                 },
                 {
-                  "id": "3dfe2e0b-e47c-41f9-b5cd-722103224c75",
+                  "id": "db5efdb7-12e4-4c68-a601-18c093ad0979",
                   "title": "Salem District",
                   "description": "Maha Seva Dal - Salem"
                 },
                 {
-                  "id": "310daeb9-5208-4982-a265-d46f97cc6595",
+                  "id": "c412a395-a852-48a5-8189-aa6e068c2b6d",
                   "title": "Sivaganga District",
                   "description": "Maha Seva Dal - Sivaganga"
                 },
                 {
-                  "id": "9a153e9a-2b97-447d-91dd-0fd5628ef689",
+                  "id": "c237b031-6fa4-4aa9-adfc-b13ce468173d",
                   "title": "Tenkasi District",
                   "description": "Maha Seva Dal - Tenkasi"
                 },
                 {
-                  "id": "7075b40c-a231-4817-a39f-157cbf3eae98",
+                  "id": "d2874e04-3707-483f-84bd-db1a3f0d89d3",
                   "title": "Thanjavur District",
                   "description": "Maha Seva Dal - Thanjavur"
                 },
                 {
-                  "id": "74e714a8-ae26-45fe-94cd-069510ca694e",
+                  "id": "92682388-efc1-4b55-b159-d1ed14e1db25",
                   "title": "Theni District",
                   "description": "Maha Seva Dal - Theni"
                 },
                 {
-                  "id": "502603f0-316b-4008-906f-6ad06ba35a84",
+                  "id": "4ce94972-49e1-492f-bd96-609c059a7e78",
                   "title": "More Districts (4/5)",
                   "description": "View more districts in Tamil Nadu"
                 }
@@ -399,70 +821,70 @@
       }
     },
     {
-      "nodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
+      "nodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
       "type": "interactive",
       "name": "Select District — Page 4/5",
       "interactiveId": null,
       "keywords": [
         "Select District — Page 4/5"
       ],
-      "parentNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
+      "parentNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Select Your District"
         },
-        "body": "Please select your district for local volunteer coordination (Page 4/5):",
-        "footer": "Tap an option below",
+        "body": "Select your District Unit in Tamil Nadu (Page 4/5):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Choose your district",
         "action": {
-          "button": "Select District",
+          "button": "Choose District",
           "sections": [
             {
-              "title": "Districts",
+              "title": "Tamil Nadu Districts",
               "rows": [
                 {
-                  "id": "7f55783d-2881-4513-bbed-f01c9966cf64",
+                  "id": "ff65f7f4-66d1-42db-ace2-0a9bf78b183e",
                   "title": "Thoothukudi District",
                   "description": "Maha Seva Dal - Thoothukudi"
                 },
                 {
-                  "id": "31885811-e9a9-4e91-a7f2-1217638902c3",
+                  "id": "5a31fdb5-7db8-4c8f-b7eb-32915aa06799",
                   "title": "Tiruchirappalli District",
                   "description": "Maha Seva Dal - Tiruchirappalli"
                 },
                 {
-                  "id": "4abd8078-d748-4c37-bb3b-641dac61bc40",
+                  "id": "9e37eba9-797f-4269-94be-eb62abc441a7",
                   "title": "Tirunelveli District",
                   "description": "Maha Seva Dal - Tirunelveli"
                 },
                 {
-                  "id": "9969bb99-9a52-40b8-b60d-53140ee7e075",
+                  "id": "a698ae46-392e-4322-9b61-da326994dd11",
                   "title": "Tirupathur District",
                   "description": "Maha Seva Dal - Tirupathur"
                 },
                 {
-                  "id": "12a3cbc7-968f-4cbd-9ba3-c2704c58abc6",
+                  "id": "301fe9c3-d4c9-4a8d-bf6a-615f7f9b9420",
                   "title": "Tiruppur District",
                   "description": "Maha Seva Dal - Tiruppur"
                 },
                 {
-                  "id": "cde514b5-c67a-43ce-866b-3626aedab971",
+                  "id": "aea45ca8-ee23-428e-8672-612c7e973243",
                   "title": "Tiruvallur District",
                   "description": "Maha Seva Dal - Tiruvallur"
                 },
                 {
-                  "id": "11b32b30-12a8-4cf7-a312-d45e61bb334c",
+                  "id": "87a36fa8-87ad-4a45-aac1-c3ff517116ad",
                   "title": "Tiruvannamalai District",
                   "description": "Maha Seva Dal - Tiruvannamalai"
                 },
                 {
-                  "id": "0698fbb1-c614-4597-a9a7-4f4f61973a8c",
+                  "id": "d3026a98-73c7-4fb5-a993-9cb415859011",
                   "title": "Tiruvarur District",
                   "description": "Maha Seva Dal - Tiruvarur"
                 },
                 {
-                  "id": "ac73d3a5-c61b-45a1-96bd-83494a290ec1",
+                  "id": "81bc234e-5f8d-44a3-bfca-126ade606a5f",
                   "title": "More Districts (5/5)",
                   "description": "View more districts in Tamil Nadu"
                 }
@@ -473,40 +895,40 @@
       }
     },
     {
-      "nodeId": "6284276c-783f-41dc-b0a0-3f66b7ab9dea",
+      "nodeId": "37f2dede-b175-4469-8f74-eac44dfe40c5",
       "type": "interactive",
       "name": "Select District — Page 5/5",
       "interactiveId": null,
       "keywords": [
         "Select District — Page 5/5"
       ],
-      "parentNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
+      "parentNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
           "text": "Select Your District"
         },
-        "body": "Please select your district for local volunteer coordination (Page 5/5):",
-        "footer": "Tap an option below",
+        "body": "Select your District Unit in Tamil Nadu (Page 5/5):\nYour district determines your local cadre unit and seva coordination.",
+        "footer": "Choose your district",
         "action": {
-          "button": "Select District",
+          "button": "Choose District",
           "sections": [
             {
-              "title": "Districts",
+              "title": "Tamil Nadu Districts",
               "rows": [
                 {
-                  "id": "f9663e6b-5cde-4c38-ac29-a88d761e5552",
+                  "id": "012938ae-0f56-4df0-9155-0b593c8c5f39",
                   "title": "Vellore District",
                   "description": "Maha Seva Dal - Vellore"
                 },
                 {
-                  "id": "01588ce8-6154-4233-af3f-e3e11b772644",
+                  "id": "2c3918de-e88e-48aa-9dab-d1f2fc42c90f",
                   "title": "Viluppuram District",
                   "description": "Maha Seva Dal - Viluppuram"
                 },
                 {
-                  "id": "dc685c41-2e00-49e2-ad0d-f94224729f8e",
+                  "id": "3e670205-d336-4c3c-8eab-f5c09af7da7b",
                   "title": "Virudhunagar District",
                   "description": "Maha Seva Dal - Virudhunagar"
                 }
@@ -517,57 +939,57 @@
       }
     },
     {
-      "nodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
+      "nodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
       "type": "interactive",
-      "name": "Explorer: Seva Wings",
-      "interactiveId": "ed27b447-ff7a-4df1-a037-df50352c5a1a",
+      "name": "Register: Select Wing",
+      "interactiveId": "5a2126a3-fcd2-4d57-acf5-911ac43a22e9",
       "keywords": [
-        "Seva Wings & Causes"
+        "Choose Seva Wing"
       ],
-      "parentNodeId": "root",
+      "parentNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "data": {
         "interactiveType": "list",
         "header": {
           "type": "text",
-          "text": "Maha Seva Dal Wings"
+          "text": "3. Profession & Wing"
         },
-        "body": "Select any wing below to learn more about our community initiatives and voluntary service fields:",
-        "footer": "Select to view details",
+        "body": "🏛️ Step 3 of 4: Profession & Wing Choice\nSelect your primary Seva Wing and optional profession for skill-mapping & cadre coordination:\n\n• Current Profession / Occupation (Advocate, Teacher, Doctor, Student, etc.)\n• Choose your dedicated Seva Wing below:",
+        "footer": "Choose 1 wing to continue",
         "action": {
-          "button": "View Wings",
+          "button": "Select Seva Wing",
           "sections": [
             {
-              "title": "Our Seva Wings",
+              "title": "Maha Seva Dal Wings",
               "rows": [
                 {
-                  "id": "450f1cbc-878e-4d9a-bb40-05cc43c442d4",
-                  "title": "Legal Wing Info",
-                  "description": "Free citizen legal clinics and human rights awareness"
+                  "id": "a35cf10d-bb1e-4a9a-b3be-57a0a10a854a",
+                  "title": "Legal Wing",
+                  "description": "Free legal aid, citizen rights awareness, community justice"
                 },
                 {
-                  "id": "59fc55c2-317f-4eb5-8dda-f25d6b7f721a",
-                  "title": "Medical Wing Info",
-                  "description": "Free health checkups, blood donation camps & medicine"
+                  "id": "5776234a-191b-4d85-94a3-cc369a0f80ec",
+                  "title": "Medical & Health",
+                  "description": "Free medical camps, blood donation drives, health checkups"
                 },
                 {
-                  "id": "106a84a1-64e1-4794-a628-ce93714c4303",
-                  "title": "Education Wing Info",
-                  "description": "Child education support, scholarships & mentorship"
+                  "id": "be63cb96-b972-4643-9be1-ea8b6d8229f1",
+                  "title": "Education & Child Care",
+                  "description": "Child welfare, study materials, student mentorship"
                 },
                 {
-                  "id": "4f044ce8-bd7d-4794-a6f2-ad39e977cfe4",
-                  "title": "Youth & Sports Info",
-                  "description": "Leadership training, sports meets and fitness camps"
+                  "id": "bd5ca7c1-52c5-43cb-89c2-005bf8f100a1",
+                  "title": "Youth & Sports Wing",
+                  "description": "Youth leadership, sports tournaments, fitness awareness"
                 },
                 {
-                  "id": "951067c7-ad9f-42a0-8694-45bffb5ee192",
-                  "title": "Mahaprasadam Info",
-                  "description": "Daily Annadanam, hunger relief & disaster food drives"
+                  "id": "07cbb7fa-0b88-4deb-97a4-d79b03b85bdc",
+                  "title": "Community & Mahaprasad",
+                  "description": "Annadanam, community food drives, emergency relief aid"
                 },
                 {
-                  "id": "5cbdc42b-e179-47b1-a2e4-743e056e8b2e",
-                  "title": "General Cadre Info",
-                  "description": "Grassroots seva, environmental drives and logistics"
+                  "id": "ec44604b-6a0e-4e74-ada2-20e7025566a3",
+                  "title": "General Seva Cadre",
+                  "description": "General volunteering, field assistance, event coordination"
                 }
               ]
             }
@@ -576,344 +998,29 @@
       }
     },
     {
-      "nodeId": "aa0d9c91-7594-4d07-9a01-4a8487255186",
+      "nodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
       "type": "interactive",
-      "name": "Wing: Legal Wing Info",
-      "interactiveId": "450f1cbc-878e-4d9a-bb40-05cc43c442d4",
+      "name": "Register: Passport Photo",
+      "interactiveId": null,
       "keywords": [
-        "Legal Wing Info"
+        "Wing Selected"
       ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
+      "parentNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
       "data": {
         "interactiveType": "button",
         "header": {
           "type": "text",
-          "text": "Legal Wing"
+          "text": "Passport Size Photo"
         },
-        "body": "The Legal Wing of Maha Seva Dal conducts legal literacy workshops, consumer rights assistance, and provides free legal aid to underprivileged citizens.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "83638f5d-822e-443b-89d5-178013c2f2af",
-                "title": "Join Legal"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "5f5616a8-133c-4d40-9094-37b3dedf01f0",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "a860f33f-25c7-4914-b391-52779ed8b0e5",
-      "type": "interactive",
-      "name": "Wing: Medical Wing Info",
-      "interactiveId": "59fc55c2-317f-4eb5-8dda-f25d6b7f721a",
-      "keywords": [
-        "Medical Wing Info"
-      ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Medical Wing"
-        },
-        "body": "The Medical & Health Wing mobilizes volunteer doctors, organizes blood donation drives, free eye checkup camps, and community health awareness programs.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "bcdd05f6-501b-4fc3-b6e5-572fbb93f526",
-                "title": "Join Medical"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "152771a1-3753-4ed7-ad56-61335154aeff",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "16dd7565-73e2-4529-a884-7f18c5a1eaad",
-      "type": "interactive",
-      "name": "Wing: Education Wing Info",
-      "interactiveId": "106a84a1-64e1-4794-a628-ce93714c4303",
-      "keywords": [
-        "Education Wing Info"
-      ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Education Wing"
-        },
-        "body": "The Education & Child Welfare Wing distributes notebooks, uniforms, provides after-school tutoring for disadvantaged students, and youth career counseling.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "287cc967-7fe2-4840-a99b-6e43a3adbae3",
-                "title": "Join Education"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "3e4f504a-b879-4266-a738-e91a1d882b14",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "61d715a0-ce90-4ed8-ac93-2caf267ba432",
-      "type": "interactive",
-      "name": "Wing: Youth & Sports Info",
-      "interactiveId": "4f044ce8-bd7d-4794-a6f2-ad39e977cfe4",
-      "keywords": [
-        "Youth & Sports Info"
-      ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Youth & Sports"
-        },
-        "body": "The Youth & Sports Wing empowers the next generation through athletic tournaments, leadership summits, and nation-building community initiatives.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "8b87ae2e-2859-4078-83ad-5bf7f5de64e0",
-                "title": "Join Youth"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "d86d90ca-1c6c-43ab-9fc2-a1c63107231a",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "a2da5ebc-3bbb-47ef-8d43-efc19d453098",
-      "type": "interactive",
-      "name": "Wing: Mahaprasadam Info",
-      "interactiveId": "951067c7-ad9f-42a0-8694-45bffb5ee192",
-      "keywords": [
-        "Mahaprasadam Info"
-      ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Mahaprasadam"
-        },
-        "body": "The Community Seva & Mahaprasadam Wing serves nutritious meals to pilgrims, hospital attendants, and organizes community relief during emergencies.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "115d7344-4e44-47ff-a4df-79ab4e197a64",
-                "title": "Join Mahaprasadam"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "dffabe6d-efb8-4b3d-8f72-e35b03f791eb",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "338bdc99-4c17-46cc-a8c4-2146a25fb7f8",
-      "type": "interactive",
-      "name": "Wing: General Cadre Info",
-      "interactiveId": "5cbdc42b-e179-47b1-a2e4-743e056e8b2e",
-      "keywords": [
-        "General Cadre Info"
-      ],
-      "parentNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "General Cadre"
-        },
-        "body": "The General Seva Cadre is the backbone of Maha Seva Dal, participating in temple cleaning, tree plantation, elder care, and civic assistance.\n\nWould you like to enroll in this wing or return to main menu?",
-        "footer": "Maha Seva Dal",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "82ae257a-8844-4640-914b-f229c2f2ccda",
-                "title": "Join General"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "36c53866-9009-482b-b2a5-73ee0b564c4d",
-                "title": "Back to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "type": "interactive",
-      "name": "Member Services Hub",
-      "interactiveId": "df807006-f2b7-4d1f-9998-77af9a72918b",
-      "keywords": [
-        "Member Services"
-      ],
-      "parentNodeId": "root",
-      "data": {
-        "interactiveType": "list",
-        "header": {
-          "type": "text",
-          "text": "MSD Services Hub"
-        },
-        "body": "Access your volunteer membership card, check upcoming programs, or support our community seva initiatives:",
-        "footer": "Select an option",
-        "action": {
-          "button": "Choose Service",
-          "sections": [
-            {
-              "title": "Services & Help",
-              "rows": [
-                {
-                  "id": "95ccd236-3d01-4cfc-a757-19561f6ff332",
-                  "title": "My Membership Card",
-                  "description": "Check your membership approval status and digital ID card"
-                },
-                {
-                  "id": "72d7caa8-3d7b-4981-a6f9-d43b0cced4a8",
-                  "title": "Upcoming Seva Events",
-                  "description": "View upcoming Annadanam, camps and foundation events"
-                },
-                {
-                  "id": "131629cb-c781-4dc1-a158-e4aa09e6494c",
-                  "title": "Donate to Foundation",
-                  "description": "Contribute towards Mahaprasadam and 80G tax-exempt seva"
-                },
-                {
-                  "id": "65948e65-7af1-472a-aa0b-82dcbc8265ea",
-                  "title": "Book Appointment",
-                  "description": "Schedule meeting with district or state coordinator"
-                }
-              ]
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "cfa4c197-953c-423f-aa9f-d7dff5a486bf",
-      "type": "interactive",
-      "name": "Events: Upcoming Seva",
-      "interactiveId": "72d7caa8-3d7b-4981-a6f9-d43b0cced4a8",
-      "keywords": [
-        "Upcoming Seva Events"
-      ],
-      "parentNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Upcoming MSD Programs"
-        },
-        "body": "Upcoming Maha Seva Dal Programs:\n\n1. Guru Poornima Seva Mahotsav (Mass Annadanam & Satsang)\n2. Mahashivratri Seva Camp (Medical aid & pilgrim assistance)\n3. State-wide Mega Blood Donation Drive\n\nWant to participate as a volunteer coordinator?",
-        "footer": "Maha Seva Dal Events",
-        "action": {
-          "buttons": [
-            {
-              "type": "reply",
-              "reply": {
-                "id": "e2f582e7-4281-4214-a18f-0c8424f6ccd9",
-                "title": "Volunteer for Event"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "55981204-1c21-48ab-b450-cf1fb0f8cc18",
-                "title": "Return to Menu"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "nodeId": "79821be2-73bb-4383-85d5-86feff4efdd6",
-      "type": "interactive",
-      "name": "Donate: Seva Support",
-      "interactiveId": "131629cb-c781-4dc1-a158-e4aa09e6494c",
-      "keywords": [
-        "Donate to Foundation"
-      ],
-      "parentNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "data": {
-        "interactiveType": "button",
-        "header": {
-          "type": "text",
-          "text": "Support Maha Seva Dal"
-        },
-        "body": "Maha Seva Dal Foundation relies on voluntary contributions to support:\n\n* Daily Annadanam & Hunger Relief\n* Underprivileged Children School Kits\n* Free Healthcare Camps & Medicines\n\nAll contributions are eligible for 80G Tax Exemption receipts.",
+        "body": "📸 Passport Size Photo (Mandatory)\nPlease attach or send your clear passport-size photo.\n\n⚡ Instant Auto-Approval:\nOnce you upload your photo, your cadre enrollment is automatically verified and approved instantly! Your official Maha Seva Dal PVC Digital ID Card will be generated and issued right here in WhatsApp.\n\nTap 'Upload Photo 📸' below to select your photo:",
         "footer": "Maha Seva Dal Foundation",
         "action": {
           "buttons": [
             {
               "type": "reply",
               "reply": {
-                "id": "bfbecf9b-e12a-4d89-8ae9-20b20bcd00b1",
-                "title": "Show Donation QR"
-              }
-            },
-            {
-              "type": "reply",
-              "reply": {
-                "id": "1c65eef3-b12a-4e6e-935f-50d6b45d6195",
-                "title": "Go to Main Menu"
+                "id": "a9d780c8-384f-416f-941d-7b56a253f5e1",
+                "title": "Upload Photo 📸"
               }
             }
           ]
@@ -921,51 +1028,179 @@
       }
     },
     {
-      "nodeId": "81d9390e-bcba-4149-a63f-3a1d29ebb653",
-      "type": "media",
-      "name": "Media: Official Donation QR",
-      "interactiveId": "bfbecf9b-e12a-4d89-8ae9-20b20bcd00b1",
-      "keywords": [
-        "Show Donation QR"
-      ],
-      "parentNodeId": "79821be2-73bb-4383-85d5-86feff4efdd6",
-      "data": {
-        "mediaType": "image",
-        "link": "https://mahasevadal.org/assets/qr-code.png",
-        "body": "Maha Seva Dal Foundation - Official UPI QR Code.\n\nScan using any UPI App (GPay, PhonePe, Paytm, BHIM).\nUPI ID: mahasevadal@sbi\n\nTo receive an 80G tax receipt, please reply with your Transaction ID and PAN number."
-      }
-    },
-    {
-      "nodeId": "22292467-51cd-4cc9-91d5-5489c06cb81e",
+      "nodeId": "547a3756-1e6e-452e-9d17-9e74a4e65d1e",
       "type": "interactive",
-      "name": "Service: Appointment",
-      "interactiveId": "65948e65-7af1-472a-aa0b-82dcbc8265ea",
+      "name": "Register: Review & Oath",
+      "interactiveId": "a9d780c8-384f-416f-941d-7b56a253f5e1",
       "keywords": [
-        "Book Appointment"
+        "Upload Photo 📸",
+        "Photo Uploaded ✅"
       ],
-      "parentNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
+      "parentNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
       "data": {
         "interactiveType": "button",
         "header": {
           "type": "text",
-          "text": "Coordinator Meeting"
+          "text": "4. Review & Oath"
         },
-        "body": "Need to discuss a local seva project, medical camp, or legal assistance in your taluk?\n\nYou can request an appointment with the Maha Seva Dal district leadership team.",
-        "footer": "Maha Seva Dal",
+        "body": "📋 Step 4 of 4: Review & Oath of Service\nVerify your enrollment details before official submission:\n\n1. Personal Profile: Deepu Kumar | S/o Sagik P | 12 Jun 1999 | Male | AB+\n2. Emergency: +91 90000 00002 (Mother)\n3. Location: Viluppuram District, Tamil Nadu - 605002\n4. Seva Wing: Legal Wing | Advocate\n5. Passport Photo: Verified & Cropped for PVC Card ✅\n\n🇮🇳 THE 1947 MAHA SEVA DAL PLEDGE:\n'I solemnly pledge to dedicate my service toward the foundational ideals of Maha Seva Dal: Unity of People, selfless social welfare, youth empowerment, and communal harmony without bias of caste, creed, or regional differences.'\n\nTap 'Confirm & Take Oath' to submit:",
+        "footer": "Maha Seva Dal Foundation",
         "action": {
           "buttons": [
             {
               "type": "reply",
               "reply": {
-                "id": "1efc2810-7472-4506-b374-e37fbaa55c6a",
-                "title": "Request Meeting"
+                "id": "84f1ff94-59e7-475c-b207-15e4b193230c",
+                "title": "Confirm & Take Oath"
               }
             },
             {
               "type": "reply",
               "reply": {
-                "id": "c2aa0fd1-d73b-4dd5-8f4b-b4eff333231d",
-                "title": "Home Menu"
+                "id": "2fa66ca4-b176-4d56-8f1d-004f3967b4d3",
+                "title": "Edit Application"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "4a7324dc-079f-492a-acb6-dfa7a3bd7e5f",
+                "title": "Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "2c663ba9-0f8d-4635-809f-96adbb201f68",
+      "type": "interactive",
+      "name": "Briefing: History & Ideology",
+      "interactiveId": "c8d35c09-d351-45b2-9c44-d8b210d2c2f8",
+      "keywords": [
+        "History & Ideology"
+      ],
+      "parentNodeId": "root",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "Estd. 1947 Heritage"
+        },
+        "body": "🏛️ Maha Seva Dal was founded in 1947 in the crucible of Indian Independence.\n\nInspired by Sardar Vallabhbhai Patel, our cadre provided relief camps during the Partition crisis and has served the nation across seven decades of civic and emergency humanitarian seva.\n\nOur motto: Discipline · Service · Unity.",
+        "footer": "Maha Seva Dal Legacy",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "184bf593-a18f-4d48-87d0-36a6961b8eff",
+                "title": "Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "89338d1a-3664-4260-bcee-532a8c14f127",
+      "type": "interactive",
+      "name": "Portal: Official Website",
+      "interactiveId": "91815fec-07be-429e-9fd8-414d1c26b83c",
+      "keywords": [
+        "Our Official Website"
+      ],
+      "parentNodeId": "root",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "Official Web Portal"
+        },
+        "body": "🌐 Maha Seva Dal Official Web Portal\n\nVisit our digital headquarters:\nhttps://mahasevadal.com\n\nDirect Portal Links:\n• Origins & Legacy: mahasevadal.com/origins\n• Leadership: mahasevadal.com/leadership\n• Cadre Status Check: mahasevadal.com/status\n• Seva Support: mahasevadal.com/support",
+        "footer": "Maha Seva Dal Portal",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "6b359a68-f5cb-4d28-a0e1-83a3cf4216fe",
+                "title": "Visit Website 🌐"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "4f386c5f-4653-4b02-ae3c-a068ddd0fc9c",
+                "title": "Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "d9889582-664d-4333-8a47-4a00bfde0330",
+      "type": "interactive",
+      "name": "Donate: Seva Support",
+      "interactiveId": "21f645fe-4df4-412e-b52d-54cb69cd32a2",
+      "keywords": [
+        "Donate & Support"
+      ],
+      "parentNodeId": "root",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "Support Maha Seva Dal"
+        },
+        "body": "🙏 Support Maha Seva Dal Seva Initiatives\n\nYour voluntary contributions fund:\n• Daily Annadanam & Community Hunger Relief\n• Free Health Checkup Camps & Medicine Drives\n• Study Kits & Mentorship for Children\n\nOfficial UPI ID: mahasevadal@sbi\n\nTap below to view the Official UPI QR Code and get your Payment Invoice.",
+        "footer": "Maha Seva Dal Foundation",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "ea5af201-3123-4070-a1f9-7e91ef06a834",
+                "title": "Show Donation QR"
+              }
+            },
+            {
+              "type": "reply",
+              "reply": {
+                "id": "abe9b644-562c-451f-99d4-809a4aecb6e6",
+                "title": "Main Menu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nodeId": "7c5c510e-b7a2-463d-b6a6-280d6125f6d1",
+      "type": "interactive",
+      "name": "Media: Official Donation QR",
+      "interactiveId": "ea5af201-3123-4070-a1f9-7e91ef06a834",
+      "keywords": [
+        "Show Donation QR"
+      ],
+      "parentNodeId": "d9889582-664d-4333-8a47-4a00bfde0330",
+      "data": {
+        "interactiveType": "button",
+        "header": {
+          "type": "text",
+          "text": "Maha Seva Dal Foundation"
+        },
+        "link": "/donation-qr.png",
+        "body": "✅ Support Maha Seva Dal Seva Initiatives\n\n🏛️ Fund: General Seva & Relief Fund\n🏦 UPI ID: mahasevadal@sbi\n👤 Account Name: Maha Seva Dal Foundation\n\n📲 Scan the QR code above or pay directly to the UPI ID.\n\n📸 After payment:\nSend your payment screenshot or Transaction ID (UTR) here in this chat. We verify and deliver your Official Donation Payment Invoice instantly.",
+        "footer": "Official Cadre Registry · Estd. 1947",
+        "action": {
+          "buttons": [
+            {
+              "type": "reply",
+              "reply": {
+                "id": "c242f655-5f41-42a0-9297-88d83d0af534",
+                "title": "Main Menu"
               }
             }
           ]
@@ -976,793 +1211,1183 @@
   "edges": [
     {
       "fromNodeId": "root",
-      "toNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
+      "toNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
       "keywords": [
-        "Join Maha Seva Dal"
+        "Cadre Registration"
       ],
-      "intentName": "Join Maha Seva Dal",
+      "intentName": "Cadre Registration",
       "delay": 0,
-      "sourceHandle": "86a7cca2-db03-4950-9b40-8673c376a3b4"
+      "sourceHandle": "8ee63965-1917-47bd-83a6-1b416b965731"
     },
     {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
+      "fromNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
+      "toNodeId": "fca37747-c5ed-40a6-b5df-60f283330317",
       "keywords": [
-        "Legal Wing"
+        "Fill Profile Form"
       ],
-      "intentName": "Legal Wing",
+      "intentName": "Fill Profile Form",
       "delay": 0,
-      "sourceHandle": "59bb6aae-9389-4a6f-9fe7-47ea49006ae7"
+      "sourceHandle": "298123b4-2c8d-4578-8a7f-5d1616da4ee6"
     },
     {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Medical & Health"
-      ],
-      "intentName": "Medical & Health",
-      "delay": 0,
-      "sourceHandle": "6be62bbd-7b98-4c48-8c67-5eecd8d71603"
-    },
-    {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Education & Child Care"
-      ],
-      "intentName": "Education & Child Care",
-      "delay": 0,
-      "sourceHandle": "701bbd8a-ec58-409d-b9cf-fa3d2d0f99b5"
-    },
-    {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Youth & Sports Wing"
-      ],
-      "intentName": "Youth & Sports Wing",
-      "delay": 0,
-      "sourceHandle": "1b95de6f-798a-455b-9c3f-9fa993f967c5"
-    },
-    {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Community & Mahaprasad"
-      ],
-      "intentName": "Community & Mahaprasad",
-      "delay": 0,
-      "sourceHandle": "a4959ac4-7989-43a3-a868-2f2300c5fbd3"
-    },
-    {
-      "fromNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "General Seva Cadre"
-      ],
-      "intentName": "General Seva Cadre",
-      "delay": 0,
-      "sourceHandle": "e1f54beb-8150-4b39-85f3-ffc5133e5b4b"
-    },
-    {
-      "fromNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
-      "toNodeId": "bce56b55-6dd4-4a3a-8b37-59690f1d1e34",
-      "keywords": [
-        "Change Wing"
-      ],
-      "intentName": "Change Wing",
-      "delay": 0,
-      "sourceHandle": "deb9ec9c-209b-467c-b7b3-ac00c8500c7d"
-    },
-    {
-      "fromNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
       "toNodeId": "root",
       "keywords": [
         "Main Menu"
       ],
       "intentName": "Main Menu",
       "delay": 0,
-      "sourceHandle": "969ff292-0c05-4fe0-b959-b19e612a8699"
+      "sourceHandle": "ecfd6f62-16bb-40ab-8884-6c425d1a68e4"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "fca37747-c5ed-40a6-b5df-60f283330317",
+      "toNodeId": "root",
+      "keywords": [
+        "Main Menu"
+      ],
+      "intentName": "Main Menu",
+      "delay": 0,
+      "sourceHandle": "bfb51b26-fb33-4b27-af51-593cc85a24f3"
+    },
+    {
+      "fromNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
+      "toNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "keywords": [
+        "Proceed to Address"
+      ],
+      "intentName": "Proceed to Address",
+      "delay": 0,
+      "sourceHandle": "1b23db53-78bd-48f1-9c5e-38d898f100b8"
+    },
+    {
+      "fromNodeId": "fca37747-c5ed-40a6-b5df-60f283330317",
+      "toNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "keywords": [
+        "Proceed to Address"
+      ],
+      "intentName": "Proceed to Address",
+      "delay": 0,
+      "sourceHandle": "7bc48a5b-986e-4536-8ced-1eb1594c1f5a"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "keywords": [
+        "More States (2/4) →"
+      ],
+      "intentName": "More States (2/4) →",
+      "delay": 0,
+      "sourceHandle": "ac3815c4-b5a8-4469-8cbc-6ce6bf3bb99f"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "keywords": [
+        "More States (3/4) →"
+      ],
+      "intentName": "More States (3/4) →",
+      "delay": 0,
+      "sourceHandle": "128d86c3-077a-4222-b04a-f17dbe16adb4"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "keywords": [
+        "More States (4/4) →"
+      ],
+      "intentName": "More States (4/4) →",
+      "delay": 0,
+      "sourceHandle": "3a79374e-14a9-469d-ac52-bb204709d8c8"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "keywords": [
+        "Tamil Nadu"
+      ],
+      "intentName": "Tamil Nadu",
+      "delay": 0,
+      "sourceHandle": "5f64aba7-1abe-4c7e-a789-6865a7f11e8a"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "keywords": [
+        "Karnataka"
+      ],
+      "intentName": "Karnataka",
+      "delay": 0,
+      "sourceHandle": "df3e4dff-c00e-49ec-a951-0723cff676aa"
+    },
+    {
+      "fromNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "toNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "keywords": [
+        "Change State / UT"
+      ],
+      "intentName": "Change State / UT",
+      "delay": 0,
+      "sourceHandle": "887488e9-639a-4dc5-b2ea-cff0a88ada30"
+    },
+    {
+      "fromNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "toNodeId": "root",
+      "keywords": [
+        "Back to Main Menu"
+      ],
+      "intentName": "Back to Main Menu",
+      "delay": 0,
+      "sourceHandle": "00589438-9d8c-4d37-9a5e-2f64a93ee5f4"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Andaman and Nicobar"
+      ],
+      "intentName": "Andaman and Nicobar",
+      "delay": 0,
+      "sourceHandle": "e583b4ed-d062-4186-8ec8-809795c057f6"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Andhra Pradesh"
+      ],
+      "intentName": "Andhra Pradesh",
+      "delay": 0,
+      "sourceHandle": "cd52dd83-b02c-42ec-9a91-034b99ec07c0"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Arunachal Pradesh"
+      ],
+      "intentName": "Arunachal Pradesh",
+      "delay": 0,
+      "sourceHandle": "3678abe4-7f89-4304-aa50-676a7c469b79"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Assam"
+      ],
+      "intentName": "Assam",
+      "delay": 0,
+      "sourceHandle": "394f57cd-2efa-463b-b610-7f29bd89bad6"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Bihar"
+      ],
+      "intentName": "Bihar",
+      "delay": 0,
+      "sourceHandle": "92705c8c-6f48-4555-802e-c4c80bd95778"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Chandigarh"
+      ],
+      "intentName": "Chandigarh",
+      "delay": 0,
+      "sourceHandle": "303403cd-c4ae-432a-a20b-d693a94af185"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Chhattisgarh"
+      ],
+      "intentName": "Chhattisgarh",
+      "delay": 0,
+      "sourceHandle": "da443231-5913-4250-b6d6-2e966eeb7af7"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Dadra & Nagar Haveli"
+      ],
+      "intentName": "Dadra & Nagar Haveli",
+      "delay": 0,
+      "sourceHandle": "6f96864d-877a-4012-b720-b10eb1bd2feb"
+    },
+    {
+      "fromNodeId": "07f462bc-0fec-4def-99ca-b45101f70480",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Delhi"
+      ],
+      "intentName": "Delhi",
+      "delay": 0,
+      "sourceHandle": "6d3e995e-3311-4c4a-88eb-be25ababef80"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Goa"
+      ],
+      "intentName": "Goa",
+      "delay": 0,
+      "sourceHandle": "ca6a5d49-5417-4e03-a44a-5ea5ec30aac8"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Gujarat"
+      ],
+      "intentName": "Gujarat",
+      "delay": 0,
+      "sourceHandle": "b45accc4-a7d6-4b3e-9364-c287a9c50d18"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Haryana"
+      ],
+      "intentName": "Haryana",
+      "delay": 0,
+      "sourceHandle": "7170fb31-48fa-4530-83c6-f949821bf951"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Himachal Pradesh"
+      ],
+      "intentName": "Himachal Pradesh",
+      "delay": 0,
+      "sourceHandle": "0d6f6aea-125e-418b-b3ed-5fedaa50fa75"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Jammu & Kashmir"
+      ],
+      "intentName": "Jammu & Kashmir",
+      "delay": 0,
+      "sourceHandle": "69b31bca-40cf-40d1-97a6-9c4ba897f71f"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Jharkhand"
+      ],
+      "intentName": "Jharkhand",
+      "delay": 0,
+      "sourceHandle": "8f1a79a8-3e57-49cd-885a-1cee3af3f811"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Kerala"
+      ],
+      "intentName": "Kerala",
+      "delay": 0,
+      "sourceHandle": "d55efae5-6e91-4cb9-b967-95d5fcc0b4ed"
+    },
+    {
+      "fromNodeId": "398d2730-6101-4716-88f4-d2f3b32c9a88",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Ladakh"
+      ],
+      "intentName": "Ladakh",
+      "delay": 0,
+      "sourceHandle": "472a2698-fcb0-4bbb-9ffc-b410485a7e85"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Lakshadweep"
+      ],
+      "intentName": "Lakshadweep",
+      "delay": 0,
+      "sourceHandle": "94d81f76-08b0-4cfc-95dc-fa5a82ca82ae"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Madhya Pradesh"
+      ],
+      "intentName": "Madhya Pradesh",
+      "delay": 0,
+      "sourceHandle": "a1c96d25-96fc-400b-9439-c40277feeff5"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Maharashtra"
+      ],
+      "intentName": "Maharashtra",
+      "delay": 0,
+      "sourceHandle": "777ef263-9b1a-4c84-9ac1-449a3a6e028f"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Manipur"
+      ],
+      "intentName": "Manipur",
+      "delay": 0,
+      "sourceHandle": "0fdd0747-9d75-4d71-8873-5dd8752049f8"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Meghalaya"
+      ],
+      "intentName": "Meghalaya",
+      "delay": 0,
+      "sourceHandle": "7b3e3366-cd8a-4f6f-b411-c94aaa3a4f12"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Mizoram"
+      ],
+      "intentName": "Mizoram",
+      "delay": 0,
+      "sourceHandle": "8cea0f49-ea45-45b5-89b5-f3cb07e535ab"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Nagaland"
+      ],
+      "intentName": "Nagaland",
+      "delay": 0,
+      "sourceHandle": "a3098f5e-2011-4136-b7b1-497b9aae2b69"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Odisha"
+      ],
+      "intentName": "Odisha",
+      "delay": 0,
+      "sourceHandle": "7d058c3d-8edd-4a81-8db0-297579697430"
+    },
+    {
+      "fromNodeId": "5b7fac5e-a9af-4774-b1bd-89c07476d95d",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Puducherry"
+      ],
+      "intentName": "Puducherry",
+      "delay": 0,
+      "sourceHandle": "320b2f02-1d3e-486b-a5e4-59645f80ded0"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Punjab"
+      ],
+      "intentName": "Punjab",
+      "delay": 0,
+      "sourceHandle": "73147ea6-39bc-41ac-b4b5-73864268a964"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Rajasthan"
+      ],
+      "intentName": "Rajasthan",
+      "delay": 0,
+      "sourceHandle": "beef3ad5-6558-4dbc-b729-ab13a134b00e"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Sikkim"
+      ],
+      "intentName": "Sikkim",
+      "delay": 0,
+      "sourceHandle": "65cb4ca1-7319-40b0-9977-3d82ae418c06"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Telangana"
+      ],
+      "intentName": "Telangana",
+      "delay": 0,
+      "sourceHandle": "13d8a825-9820-475c-bb7f-a905260161d6"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Tripura"
+      ],
+      "intentName": "Tripura",
+      "delay": 0,
+      "sourceHandle": "e7ff203c-7f17-4812-81b9-1ae3ac1adae9"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Uttar Pradesh"
+      ],
+      "intentName": "Uttar Pradesh",
+      "delay": 0,
+      "sourceHandle": "74c8be2c-eef7-4481-9302-708658410dcc"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Uttarakhand"
+      ],
+      "intentName": "Uttarakhand",
+      "delay": 0,
+      "sourceHandle": "e8a7b34d-06a9-402f-b2ad-3bbcdfca9fa6"
+    },
+    {
+      "fromNodeId": "c4879f04-3857-45d2-99b8-d6bd445790d4",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "West Bengal"
+      ],
+      "intentName": "West Bengal",
+      "delay": 0,
+      "sourceHandle": "fba90dea-01a3-4db4-a6fd-e8a6fcba8d28"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Bagalkot District"
+      ],
+      "intentName": "Bagalkot District",
+      "delay": 0,
+      "sourceHandle": "1cfda2ae-9aba-4eec-8cc7-e02aad199008"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Ballari District"
+      ],
+      "intentName": "Ballari District",
+      "delay": 0,
+      "sourceHandle": "c1bd3f99-16f4-4834-95ac-ba7fa17e88a5"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Belagavi District"
+      ],
+      "intentName": "Belagavi District",
+      "delay": 0,
+      "sourceHandle": "1c7d4e76-1e7f-4ee6-b740-440a59e6b7ed"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Bengaluru Rural Dist"
+      ],
+      "intentName": "Bengaluru Rural Dist",
+      "delay": 0,
+      "sourceHandle": "adf3c68a-e2c8-4748-a632-942dbb8a1ac0"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Bengaluru Urban Dist"
+      ],
+      "intentName": "Bengaluru Urban Dist",
+      "delay": 0,
+      "sourceHandle": "71dfec5a-0c90-497b-8bc9-fcd89eba6984"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Bidar District"
+      ],
+      "intentName": "Bidar District",
+      "delay": 0,
+      "sourceHandle": "35c67fe7-1245-4d0a-9519-2f37fb3cdc27"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Kalaburagi District"
+      ],
+      "intentName": "Kalaburagi District",
+      "delay": 0,
+      "sourceHandle": "702a1b44-e82e-4a5d-8982-9137e2b81c09"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Mysuru District"
+      ],
+      "intentName": "Mysuru District",
+      "delay": 0,
+      "sourceHandle": "0c978966-30f3-4e6f-b299-e0183a6b020d"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Tumakuru District"
+      ],
+      "intentName": "Tumakuru District",
+      "delay": 0,
+      "sourceHandle": "6c670ee8-1204-464c-afd5-d967360a8732"
+    },
+    {
+      "fromNodeId": "08a840b5-e2b9-4009-a368-f6076478db67",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "keywords": [
+        "Other Karnataka Dist"
+      ],
+      "intentName": "Other Karnataka Dist",
+      "delay": 0,
+      "sourceHandle": "30243f9f-53bd-4992-87be-95bc0c607872"
+    },
+    {
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Ariyalur District"
       ],
       "intentName": "Ariyalur District",
       "delay": 0,
-      "sourceHandle": "99b1a43a-27a8-4fdf-9937-35c337b63359"
+      "sourceHandle": "9f8a2d7b-27e4-497d-a9f7-007169143016"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Chengalpattu District"
       ],
       "intentName": "Chengalpattu District",
       "delay": 0,
-      "sourceHandle": "190b1c53-2e3c-465f-995e-ff8d8803bc07"
+      "sourceHandle": "c7176109-2271-44f4-9633-4dfa934abfe9"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Chennai District"
       ],
       "intentName": "Chennai District",
       "delay": 0,
-      "sourceHandle": "5bd48d96-719b-4a56-98b4-225b31c11c76"
+      "sourceHandle": "e40f7800-73db-41da-8944-41642fdfa2ff"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Coimbatore District"
       ],
       "intentName": "Coimbatore District",
       "delay": 0,
-      "sourceHandle": "ef1422b3-a8cd-4499-ae7b-822720e25d06"
+      "sourceHandle": "896f65b0-cfca-458c-8fd1-1e01902d488e"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Cuddalore District"
       ],
       "intentName": "Cuddalore District",
       "delay": 0,
-      "sourceHandle": "34be0482-1cb5-47c4-a9ba-c6617e1c11b5"
+      "sourceHandle": "4eca7e1c-71b0-4cb7-953a-e86378e909e1"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Dharmapuri District"
       ],
       "intentName": "Dharmapuri District",
       "delay": 0,
-      "sourceHandle": "ee252543-12f8-4467-ad28-2ca3470e8bd1"
+      "sourceHandle": "88bcfbd1-70c3-474a-b449-9a4dfb40938c"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Dindigul District"
       ],
       "intentName": "Dindigul District",
       "delay": 0,
-      "sourceHandle": "c6882b0f-5004-489f-a1f9-6680d6f547d4"
+      "sourceHandle": "58ff4969-ac0f-4143-b052-ac30a550b045"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Erode District"
       ],
       "intentName": "Erode District",
       "delay": 0,
-      "sourceHandle": "b0c7cc87-71d7-4400-b4fa-59c0de7034de"
+      "sourceHandle": "120aaafd-82e9-49b0-84e2-d622f136c492"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Kallakurichi District"
       ],
       "intentName": "Kallakurichi District",
       "delay": 0,
-      "sourceHandle": "c50cfac9-1f9c-435a-96cf-1ec73bcf9229"
+      "sourceHandle": "e81f3e14-c1e3-474e-aac5-36cbd8ed4aee"
     },
     {
-      "fromNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "toNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
+      "fromNodeId": "10ca2240-d593-4d19-9d12-0811133e2a95",
+      "toNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
       "keywords": [
         "More Districts (2/5)"
       ],
       "intentName": "More Districts (2/5)",
       "delay": 0,
-      "sourceHandle": "6596793b-eb11-4679-a58c-fc96014066e2"
+      "sourceHandle": "926e83ea-69f0-4dfc-83bd-b550cb66e14d"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Kanchipuram District"
       ],
       "intentName": "Kanchipuram District",
       "delay": 0,
-      "sourceHandle": "089c89d1-b1e2-4926-8525-7c6f32f8457a"
+      "sourceHandle": "28bb6e53-eed9-48e0-b366-5015f13ce561"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Kanyakumari District"
       ],
       "intentName": "Kanyakumari District",
       "delay": 0,
-      "sourceHandle": "1ef4e38e-e192-49d0-a9e2-34f5643168c5"
+      "sourceHandle": "906252ad-2bab-4094-a481-127d444914bd"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Karur District"
       ],
       "intentName": "Karur District",
       "delay": 0,
-      "sourceHandle": "b97f4307-4b5f-42ca-9524-59a09ea81fc3"
+      "sourceHandle": "b20cb9bc-25e8-4fa3-80d2-e10e68f5409e"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Krishnagiri District"
       ],
       "intentName": "Krishnagiri District",
       "delay": 0,
-      "sourceHandle": "56b9ce7f-977e-4e1c-a364-880af63bea45"
+      "sourceHandle": "8ccc184f-eb94-433b-bc00-918ce59cce58"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Madurai District"
       ],
       "intentName": "Madurai District",
       "delay": 0,
-      "sourceHandle": "e52245e1-dde1-4f7b-bcb6-3a1534ee7907"
+      "sourceHandle": "ef71c078-083d-43f2-bbdc-68e341beef65"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Mayiladuthurai District"
       ],
       "intentName": "Mayiladuthurai District",
       "delay": 0,
-      "sourceHandle": "07fdbd94-12ce-4220-8282-9607bfbc27f8"
+      "sourceHandle": "d09dc493-e0ff-4e47-84c0-ce0e68ec88c8"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Nagapattinam District"
       ],
       "intentName": "Nagapattinam District",
       "delay": 0,
-      "sourceHandle": "73973484-77e1-4d88-9183-29b825ac4598"
+      "sourceHandle": "abc621db-9600-48fe-9591-f3c1edc10d2d"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Namakkal District"
       ],
       "intentName": "Namakkal District",
       "delay": 0,
-      "sourceHandle": "63f75321-eaee-4e88-bc40-63fb705c71d2"
+      "sourceHandle": "e73d074d-616f-413b-830d-fa52edf1f945"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Nilgiris District"
       ],
       "intentName": "Nilgiris District",
       "delay": 0,
-      "sourceHandle": "9337474f-8c12-4662-ada4-21b9dee65ff8"
+      "sourceHandle": "56f3e0c9-4759-4069-a031-56fde4fd62c3"
     },
     {
-      "fromNodeId": "54017d7b-327e-4998-b9f6-2a470de1e887",
-      "toNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
+      "fromNodeId": "94389b40-0028-4d1c-abef-1ce9b6d35f75",
+      "toNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
       "keywords": [
         "More Districts (3/5)"
       ],
       "intentName": "More Districts (3/5)",
       "delay": 0,
-      "sourceHandle": "3ae27175-b0d7-44ab-9310-ea415347720f"
+      "sourceHandle": "7bce138b-a4dc-4853-bc14-9a42c653fe3a"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Perambalur District"
       ],
       "intentName": "Perambalur District",
       "delay": 0,
-      "sourceHandle": "974eb9d5-f0df-463f-9079-52b4be4bc1cd"
+      "sourceHandle": "b56e782e-a463-4403-bf2c-77cf5181d802"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Pudukkottai District"
       ],
       "intentName": "Pudukkottai District",
       "delay": 0,
-      "sourceHandle": "141a2a9e-c9a5-45c3-9671-43295db1368e"
+      "sourceHandle": "845dc6c4-50ad-427e-b3b0-4c7229b18ace"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Ramanathapuram District"
       ],
       "intentName": "Ramanathapuram District",
       "delay": 0,
-      "sourceHandle": "370eccb0-db6c-4a8d-a893-0f8b4c03622d"
+      "sourceHandle": "b412a85d-66ad-4765-891e-cd4b200db426"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Ranipet District"
       ],
       "intentName": "Ranipet District",
       "delay": 0,
-      "sourceHandle": "7ee177a3-41d3-4784-b87c-fcec77d608ec"
+      "sourceHandle": "ee82ab5c-5703-4368-bbf7-67f5e3c89f3d"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Salem District"
       ],
       "intentName": "Salem District",
       "delay": 0,
-      "sourceHandle": "3dfe2e0b-e47c-41f9-b5cd-722103224c75"
+      "sourceHandle": "db5efdb7-12e4-4c68-a601-18c093ad0979"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Sivaganga District"
       ],
       "intentName": "Sivaganga District",
       "delay": 0,
-      "sourceHandle": "310daeb9-5208-4982-a265-d46f97cc6595"
+      "sourceHandle": "c412a395-a852-48a5-8189-aa6e068c2b6d"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tenkasi District"
       ],
       "intentName": "Tenkasi District",
       "delay": 0,
-      "sourceHandle": "9a153e9a-2b97-447d-91dd-0fd5628ef689"
+      "sourceHandle": "c237b031-6fa4-4aa9-adfc-b13ce468173d"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Thanjavur District"
       ],
       "intentName": "Thanjavur District",
       "delay": 0,
-      "sourceHandle": "7075b40c-a231-4817-a39f-157cbf3eae98"
+      "sourceHandle": "d2874e04-3707-483f-84bd-db1a3f0d89d3"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Theni District"
       ],
       "intentName": "Theni District",
       "delay": 0,
-      "sourceHandle": "74e714a8-ae26-45fe-94cd-069510ca694e"
+      "sourceHandle": "92682388-efc1-4b55-b159-d1ed14e1db25"
     },
     {
-      "fromNodeId": "7f02338f-191d-45f2-82df-0cee312d9510",
-      "toNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
+      "fromNodeId": "12b55897-a1e0-4f69-9501-48c08e3b91c7",
+      "toNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
       "keywords": [
         "More Districts (4/5)"
       ],
       "intentName": "More Districts (4/5)",
       "delay": 0,
-      "sourceHandle": "502603f0-316b-4008-906f-6ad06ba35a84"
+      "sourceHandle": "4ce94972-49e1-492f-bd96-609c059a7e78"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Thoothukudi District"
       ],
       "intentName": "Thoothukudi District",
       "delay": 0,
-      "sourceHandle": "7f55783d-2881-4513-bbed-f01c9966cf64"
+      "sourceHandle": "ff65f7f4-66d1-42db-ace2-0a9bf78b183e"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tiruchirappalli District"
       ],
       "intentName": "Tiruchirappalli District",
       "delay": 0,
-      "sourceHandle": "31885811-e9a9-4e91-a7f2-1217638902c3"
+      "sourceHandle": "5a31fdb5-7db8-4c8f-b7eb-32915aa06799"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tirunelveli District"
       ],
       "intentName": "Tirunelveli District",
       "delay": 0,
-      "sourceHandle": "4abd8078-d748-4c37-bb3b-641dac61bc40"
+      "sourceHandle": "9e37eba9-797f-4269-94be-eb62abc441a7"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tirupathur District"
       ],
       "intentName": "Tirupathur District",
       "delay": 0,
-      "sourceHandle": "9969bb99-9a52-40b8-b60d-53140ee7e075"
+      "sourceHandle": "a698ae46-392e-4322-9b61-da326994dd11"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tiruppur District"
       ],
       "intentName": "Tiruppur District",
       "delay": 0,
-      "sourceHandle": "12a3cbc7-968f-4cbd-9ba3-c2704c58abc6"
+      "sourceHandle": "301fe9c3-d4c9-4a8d-bf6a-615f7f9b9420"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tiruvallur District"
       ],
       "intentName": "Tiruvallur District",
       "delay": 0,
-      "sourceHandle": "cde514b5-c67a-43ce-866b-3626aedab971"
+      "sourceHandle": "aea45ca8-ee23-428e-8672-612c7e973243"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tiruvannamalai District"
       ],
       "intentName": "Tiruvannamalai District",
       "delay": 0,
-      "sourceHandle": "11b32b30-12a8-4cf7-a312-d45e61bb334c"
+      "sourceHandle": "87a36fa8-87ad-4a45-aac1-c3ff517116ad"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Tiruvarur District"
       ],
       "intentName": "Tiruvarur District",
       "delay": 0,
-      "sourceHandle": "0698fbb1-c614-4597-a9a7-4f4f61973a8c"
+      "sourceHandle": "d3026a98-73c7-4fb5-a993-9cb415859011"
     },
     {
-      "fromNodeId": "d3d8ba15-c5e8-4641-87c6-8c3a2f5eff47",
-      "toNodeId": "6284276c-783f-41dc-b0a0-3f66b7ab9dea",
+      "fromNodeId": "3b23d7e0-a1c2-4659-81f2-6cb5e14aa969",
+      "toNodeId": "37f2dede-b175-4469-8f74-eac44dfe40c5",
       "keywords": [
         "More Districts (5/5)"
       ],
       "intentName": "More Districts (5/5)",
       "delay": 0,
-      "sourceHandle": "ac73d3a5-c61b-45a1-96bd-83494a290ec1"
+      "sourceHandle": "81bc234e-5f8d-44a3-bfca-126ade606a5f"
     },
     {
-      "fromNodeId": "6284276c-783f-41dc-b0a0-3f66b7ab9dea",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "37f2dede-b175-4469-8f74-eac44dfe40c5",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Vellore District"
       ],
       "intentName": "Vellore District",
       "delay": 0,
-      "sourceHandle": "f9663e6b-5cde-4c38-ac29-a88d761e5552"
+      "sourceHandle": "012938ae-0f56-4df0-9155-0b593c8c5f39"
     },
     {
-      "fromNodeId": "6284276c-783f-41dc-b0a0-3f66b7ab9dea",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "37f2dede-b175-4469-8f74-eac44dfe40c5",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Viluppuram District"
       ],
       "intentName": "Viluppuram District",
       "delay": 0,
-      "sourceHandle": "01588ce8-6154-4233-af3f-e3e11b772644"
+      "sourceHandle": "2c3918de-e88e-48aa-9dab-d1f2fc42c90f"
     },
     {
-      "fromNodeId": "6284276c-783f-41dc-b0a0-3f66b7ab9dea",
-      "toNodeId": "d6b48ca7-58cf-40cc-aecb-612dd97f8288",
+      "fromNodeId": "37f2dede-b175-4469-8f74-eac44dfe40c5",
+      "toNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
       "keywords": [
         "Virudhunagar District"
       ],
       "intentName": "Virudhunagar District",
       "delay": 0,
-      "sourceHandle": "dc685c41-2e00-49e2-ad0d-f94224729f8e"
+      "sourceHandle": "3e670205-d336-4c3c-8eab-f5c09af7da7b"
+    },
+    {
+      "fromNodeId": "73374913-7af6-4146-ade3-f76d24e8354a",
+      "toNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "keywords": [
+        "Choose Seva Wing"
+      ],
+      "intentName": "Choose Seva Wing",
+      "delay": 0,
+      "sourceHandle": "5a2126a3-fcd2-4d57-acf5-911ac43a22e9"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "Legal Wing"
+      ],
+      "intentName": "Legal Wing",
+      "delay": 0,
+      "sourceHandle": "a35cf10d-bb1e-4a9a-b3be-57a0a10a854a"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "Medical & Health"
+      ],
+      "intentName": "Medical & Health",
+      "delay": 0,
+      "sourceHandle": "5776234a-191b-4d85-94a3-cc369a0f80ec"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "Education & Child Care"
+      ],
+      "intentName": "Education & Child Care",
+      "delay": 0,
+      "sourceHandle": "be63cb96-b972-4643-9be1-ea8b6d8229f1"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "Youth & Sports Wing"
+      ],
+      "intentName": "Youth & Sports Wing",
+      "delay": 0,
+      "sourceHandle": "bd5ca7c1-52c5-43cb-89c2-005bf8f100a1"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "Community & Mahaprasad"
+      ],
+      "intentName": "Community & Mahaprasad",
+      "delay": 0,
+      "sourceHandle": "07cbb7fa-0b88-4deb-97a4-d79b03b85bdc"
+    },
+    {
+      "fromNodeId": "58d0f0e8-38c6-4d1b-8a67-5f65ccd09deb",
+      "toNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "keywords": [
+        "General Seva Cadre"
+      ],
+      "intentName": "General Seva Cadre",
+      "delay": 0,
+      "sourceHandle": "ec44604b-6a0e-4e74-ada2-20e7025566a3"
+    },
+    {
+      "fromNodeId": "678a536b-2e5c-40f7-a874-a4eeef031db5",
+      "toNodeId": "547a3756-1e6e-452e-9d17-9e74a4e65d1e",
+      "keywords": [
+        "Upload Photo 📸"
+      ],
+      "intentName": "Upload Photo 📸",
+      "delay": 0,
+      "sourceHandle": "a9d780c8-384f-416f-941d-7b56a253f5e1"
+    },
+    {
+      "fromNodeId": "547a3756-1e6e-452e-9d17-9e74a4e65d1e",
+      "toNodeId": "05c6d33e-13c4-429a-93fb-b1fb303646a4",
+      "keywords": [
+        "Edit Application"
+      ],
+      "intentName": "Edit Application",
+      "delay": 0,
+      "sourceHandle": "2fa66ca4-b176-4d56-8f1d-004f3967b4d3"
+    },
+    {
+      "fromNodeId": "547a3756-1e6e-452e-9d17-9e74a4e65d1e",
+      "toNodeId": "root",
+      "keywords": [
+        "Main Menu"
+      ],
+      "intentName": "Main Menu",
+      "delay": 0,
+      "sourceHandle": "4a7324dc-079f-492a-acb6-dfa7a3bd7e5f"
     },
     {
       "fromNodeId": "root",
-      "toNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
+      "toNodeId": "2c663ba9-0f8d-4635-809f-96adbb201f68",
       "keywords": [
-        "Seva Wings & Causes"
+        "History & Ideology"
       ],
-      "intentName": "Seva Wings & Causes",
+      "intentName": "History & Ideology",
       "delay": 0,
-      "sourceHandle": "ed27b447-ff7a-4df1-a037-df50352c5a1a"
+      "sourceHandle": "c8d35c09-d351-45b2-9c44-d8b210d2c2f8"
     },
     {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "aa0d9c91-7594-4d07-9a01-4a8487255186",
-      "keywords": [
-        "Legal Wing Info"
-      ],
-      "intentName": "Legal Wing Info",
-      "delay": 0,
-      "sourceHandle": "450f1cbc-878e-4d9a-bb40-05cc43c442d4"
-    },
-    {
-      "fromNodeId": "aa0d9c91-7594-4d07-9a01-4a8487255186",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join Legal"
-      ],
-      "intentName": "Join Legal",
-      "delay": 0,
-      "sourceHandle": "83638f5d-822e-443b-89d5-178013c2f2af"
-    },
-    {
-      "fromNodeId": "aa0d9c91-7594-4d07-9a01-4a8487255186",
+      "fromNodeId": "2c663ba9-0f8d-4635-809f-96adbb201f68",
       "toNodeId": "root",
       "keywords": [
-        "Back to Menu"
+        "Main Menu"
       ],
-      "intentName": "Back to Menu",
+      "intentName": "Main Menu",
       "delay": 0,
-      "sourceHandle": "5f5616a8-133c-4d40-9094-37b3dedf01f0"
-    },
-    {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "a860f33f-25c7-4914-b391-52779ed8b0e5",
-      "keywords": [
-        "Medical Wing Info"
-      ],
-      "intentName": "Medical Wing Info",
-      "delay": 0,
-      "sourceHandle": "59fc55c2-317f-4eb5-8dda-f25d6b7f721a"
-    },
-    {
-      "fromNodeId": "a860f33f-25c7-4914-b391-52779ed8b0e5",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join Medical"
-      ],
-      "intentName": "Join Medical",
-      "delay": 0,
-      "sourceHandle": "bcdd05f6-501b-4fc3-b6e5-572fbb93f526"
-    },
-    {
-      "fromNodeId": "a860f33f-25c7-4914-b391-52779ed8b0e5",
-      "toNodeId": "root",
-      "keywords": [
-        "Back to Menu"
-      ],
-      "intentName": "Back to Menu",
-      "delay": 0,
-      "sourceHandle": "152771a1-3753-4ed7-ad56-61335154aeff"
-    },
-    {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "16dd7565-73e2-4529-a884-7f18c5a1eaad",
-      "keywords": [
-        "Education Wing Info"
-      ],
-      "intentName": "Education Wing Info",
-      "delay": 0,
-      "sourceHandle": "106a84a1-64e1-4794-a628-ce93714c4303"
-    },
-    {
-      "fromNodeId": "16dd7565-73e2-4529-a884-7f18c5a1eaad",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join Education"
-      ],
-      "intentName": "Join Education",
-      "delay": 0,
-      "sourceHandle": "287cc967-7fe2-4840-a99b-6e43a3adbae3"
-    },
-    {
-      "fromNodeId": "16dd7565-73e2-4529-a884-7f18c5a1eaad",
-      "toNodeId": "root",
-      "keywords": [
-        "Back to Menu"
-      ],
-      "intentName": "Back to Menu",
-      "delay": 0,
-      "sourceHandle": "3e4f504a-b879-4266-a738-e91a1d882b14"
-    },
-    {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "61d715a0-ce90-4ed8-ac93-2caf267ba432",
-      "keywords": [
-        "Youth & Sports Info"
-      ],
-      "intentName": "Youth & Sports Info",
-      "delay": 0,
-      "sourceHandle": "4f044ce8-bd7d-4794-a6f2-ad39e977cfe4"
-    },
-    {
-      "fromNodeId": "61d715a0-ce90-4ed8-ac93-2caf267ba432",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join Youth"
-      ],
-      "intentName": "Join Youth",
-      "delay": 0,
-      "sourceHandle": "8b87ae2e-2859-4078-83ad-5bf7f5de64e0"
-    },
-    {
-      "fromNodeId": "61d715a0-ce90-4ed8-ac93-2caf267ba432",
-      "toNodeId": "root",
-      "keywords": [
-        "Back to Menu"
-      ],
-      "intentName": "Back to Menu",
-      "delay": 0,
-      "sourceHandle": "d86d90ca-1c6c-43ab-9fc2-a1c63107231a"
-    },
-    {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "a2da5ebc-3bbb-47ef-8d43-efc19d453098",
-      "keywords": [
-        "Mahaprasadam Info"
-      ],
-      "intentName": "Mahaprasadam Info",
-      "delay": 0,
-      "sourceHandle": "951067c7-ad9f-42a0-8694-45bffb5ee192"
-    },
-    {
-      "fromNodeId": "a2da5ebc-3bbb-47ef-8d43-efc19d453098",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join Mahaprasadam"
-      ],
-      "intentName": "Join Mahaprasadam",
-      "delay": 0,
-      "sourceHandle": "115d7344-4e44-47ff-a4df-79ab4e197a64"
-    },
-    {
-      "fromNodeId": "a2da5ebc-3bbb-47ef-8d43-efc19d453098",
-      "toNodeId": "root",
-      "keywords": [
-        "Back to Menu"
-      ],
-      "intentName": "Back to Menu",
-      "delay": 0,
-      "sourceHandle": "dffabe6d-efb8-4b3d-8f72-e35b03f791eb"
-    },
-    {
-      "fromNodeId": "680f9bfe-a42d-4b66-9e52-7e4a8788f151",
-      "toNodeId": "338bdc99-4c17-46cc-a8c4-2146a25fb7f8",
-      "keywords": [
-        "General Cadre Info"
-      ],
-      "intentName": "General Cadre Info",
-      "delay": 0,
-      "sourceHandle": "5cbdc42b-e179-47b1-a2e4-743e056e8b2e"
-    },
-    {
-      "fromNodeId": "338bdc99-4c17-46cc-a8c4-2146a25fb7f8",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Join General"
-      ],
-      "intentName": "Join General",
-      "delay": 0,
-      "sourceHandle": "82ae257a-8844-4640-914b-f229c2f2ccda"
-    },
-    {
-      "fromNodeId": "338bdc99-4c17-46cc-a8c4-2146a25fb7f8",
-      "toNodeId": "root",
-      "keywords": [
-        "Back to Menu"
-      ],
-      "intentName": "Back to Menu",
-      "delay": 0,
-      "sourceHandle": "36c53866-9009-482b-b2a5-73ee0b564c4d"
+      "sourceHandle": "184bf593-a18f-4d48-87d0-36a6961b8eff"
     },
     {
       "fromNodeId": "root",
-      "toNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
+      "toNodeId": "89338d1a-3664-4260-bcee-532a8c14f127",
       "keywords": [
-        "Member Services"
+        "Our Official Website"
       ],
-      "intentName": "Member Services",
+      "intentName": "Our Official Website",
       "delay": 0,
-      "sourceHandle": "df807006-f2b7-4d1f-9998-77af9a72918b"
+      "sourceHandle": "91815fec-07be-429e-9fd8-414d1c26b83c"
     },
     {
-      "fromNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "toNodeId": "cfa4c197-953c-423f-aa9f-d7dff5a486bf",
+      "fromNodeId": "89338d1a-3664-4260-bcee-532a8c14f127",
+      "toNodeId": "89338d1a-3664-4260-bcee-532a8c14f127",
       "keywords": [
-        "Upcoming Seva Events"
+        "Visit Website 🌐"
       ],
-      "intentName": "Upcoming Seva Events",
+      "intentName": "Visit Website 🌐",
       "delay": 0,
-      "sourceHandle": "72d7caa8-3d7b-4981-a6f9-d43b0cced4a8"
+      "sourceHandle": "6b359a68-f5cb-4d28-a0e1-83a3cf4216fe"
     },
     {
-      "fromNodeId": "cfa4c197-953c-423f-aa9f-d7dff5a486bf",
-      "toNodeId": "17d6cee3-2f5a-4d02-acc8-07a5c90c60e6",
-      "keywords": [
-        "Volunteer for Event"
-      ],
-      "intentName": "Volunteer for Event",
-      "delay": 0,
-      "sourceHandle": "e2f582e7-4281-4214-a18f-0c8424f6ccd9"
-    },
-    {
-      "fromNodeId": "cfa4c197-953c-423f-aa9f-d7dff5a486bf",
+      "fromNodeId": "89338d1a-3664-4260-bcee-532a8c14f127",
       "toNodeId": "root",
       "keywords": [
-        "Return to Menu"
+        "Main Menu"
       ],
-      "intentName": "Return to Menu",
+      "intentName": "Main Menu",
       "delay": 0,
-      "sourceHandle": "55981204-1c21-48ab-b450-cf1fb0f8cc18"
+      "sourceHandle": "4f386c5f-4653-4b02-ae3c-a068ddd0fc9c"
     },
     {
-      "fromNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "toNodeId": "79821be2-73bb-4383-85d5-86feff4efdd6",
+      "fromNodeId": "root",
+      "toNodeId": "d9889582-664d-4333-8a47-4a00bfde0330",
       "keywords": [
-        "Donate to Foundation"
+        "Donate & Support"
       ],
-      "intentName": "Donate to Foundation",
+      "intentName": "Donate & Support",
       "delay": 0,
-      "sourceHandle": "131629cb-c781-4dc1-a158-e4aa09e6494c"
+      "sourceHandle": "21f645fe-4df4-412e-b52d-54cb69cd32a2"
     },
     {
-      "fromNodeId": "79821be2-73bb-4383-85d5-86feff4efdd6",
+      "fromNodeId": "d9889582-664d-4333-8a47-4a00bfde0330",
       "toNodeId": "root",
       "keywords": [
-        "Go to Main Menu"
+        "Main Menu"
       ],
-      "intentName": "Go to Main Menu",
+      "intentName": "Main Menu",
       "delay": 0,
-      "sourceHandle": "1c65eef3-b12a-4e6e-935f-50d6b45d6195"
+      "sourceHandle": "abe9b644-562c-451f-99d4-809a4aecb6e6"
     },
     {
-      "fromNodeId": "79821be2-73bb-4383-85d5-86feff4efdd6",
-      "toNodeId": "81d9390e-bcba-4149-a63f-3a1d29ebb653",
+      "fromNodeId": "d9889582-664d-4333-8a47-4a00bfde0330",
+      "toNodeId": "7c5c510e-b7a2-463d-b6a6-280d6125f6d1",
       "keywords": [
         "Show Donation QR"
       ],
       "intentName": "Show Donation QR",
       "delay": 0,
-      "sourceHandle": "bfbecf9b-e12a-4d89-8ae9-20b20bcd00b1"
+      "sourceHandle": "ea5af201-3123-4070-a1f9-7e91ef06a834"
     },
     {
-      "fromNodeId": "a0e8e3b4-f4fc-4c86-b2e5-5dd97331d4c7",
-      "toNodeId": "22292467-51cd-4cc9-91d5-5489c06cb81e",
-      "keywords": [
-        "Book Appointment"
-      ],
-      "intentName": "Book Appointment",
-      "delay": 0,
-      "sourceHandle": "65948e65-7af1-472a-aa0b-82dcbc8265ea"
-    },
-    {
-      "fromNodeId": "22292467-51cd-4cc9-91d5-5489c06cb81e",
+      "fromNodeId": "7c5c510e-b7a2-463d-b6a6-280d6125f6d1",
       "toNodeId": "root",
       "keywords": [
-        "Home Menu"
+        "Main Menu"
       ],
-      "intentName": "Home Menu",
+      "intentName": "Main Menu",
       "delay": 0,
-      "sourceHandle": "c2aa0fd1-d73b-4dd5-8f4b-b4eff333231d"
+      "sourceHandle": "c242f655-5f41-42a0-9297-88d83d0af534"
     }
   ],
   "manualResolution": false

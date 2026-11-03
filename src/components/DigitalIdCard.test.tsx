@@ -63,6 +63,67 @@ describe("DigitalIdCard Component", () => {
     render(<DigitalIdCard member={sampleMember} qrDataUrl={sampleQr} hideActionButtons={true} />);
 
     expect(screen.queryByText(/Download PDF/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Download PNG/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Both Sides (PNG)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Front Side (PNG)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Back Side (PNG)/i)).not.toBeInTheDocument();
+  });
+
+  it("should render download options: PDF, Both Sides, Front Side, and Back Side", () => {
+    render(<DigitalIdCard member={sampleMember} qrDataUrl={sampleQr} />);
+    expect(screen.getByText("Download PDF")).toBeInTheDocument();
+    expect(screen.getByText("Both Sides (PNG)")).toBeInTheDocument();
+    expect(screen.getByText("Front Side (PNG)")).toBeInTheDocument();
+    expect(screen.getByText("Back Side (PNG)")).toBeInTheDocument();
+  });
+
+  it("should export renderCleanCardOffscreen, addPaddingToCardDataUrl and combineCapturedCards", async () => {
+    const { renderCleanCardOffscreen, addPaddingToCardDataUrl, combineCapturedCards, generateCombinedIdCardCanvas, setPng300Dpi } = await import("./DigitalIdCard");
+    expect(typeof renderCleanCardOffscreen).toBe("function");
+    expect(typeof addPaddingToCardDataUrl).toBe("function");
+    expect(typeof combineCapturedCards).toBe("function");
+    expect(typeof generateCombinedIdCardCanvas).toBe("function");
+    expect(typeof setPng300Dpi).toBe("function");
+
+    // Empty input should safely return empty string
+    const result = await addPaddingToCardDataUrl("");
+    expect(result).toBe("");
+  });
+
+  it("should embed 300 DPI pHYs chunk into PNG data URLs", async () => {
+    const { setPng300Dpi } = await import("./DigitalIdCard");
+    const output = setPng300Dpi(sampleQr, 300);
+    expect(output).toContain("data:image/png;base64,");
+
+    // Decode and verify the pHYs chunk presence
+    const base64 = output.replace("data:image/png;base64,", "");
+    const binary = atob(base64);
+    expect(binary.includes("pHYs")).toBe(true);
+  });
+
+  it("should render Emergency Contact with relation on card back when provided", () => {
+    const memberWithEmergency = {
+      ...sampleMember,
+      emergencyNumber: "9123456789",
+      emergencyRelation: "Mother",
+    };
+    render(<DigitalIdCard member={memberWithEmergency} qrDataUrl={sampleQr} defaultView="both" />);
+
+    expect(screen.getByText("Emergency Contact")).toBeInTheDocument();
+    expect(screen.getByText("9123456789")).toBeInTheDocument();
+    expect(screen.getByText("(Mother)")).toBeInTheDocument();
+  });
+
+  it("should render Assembly Constituency and Zone / Region on the front of the ID card", () => {
+    const memberWithAssemblyZone = {
+      ...sampleMember,
+      assembly: "Thiyagarayanagar",
+      zone: "CHENNAI ZONE",
+    };
+    render(<DigitalIdCard member={memberWithAssemblyZone} qrDataUrl={sampleQr} defaultView="front" />);
+
+    expect(screen.getByText("Assembly Constituency")).toBeInTheDocument();
+    expect(screen.getByText("Thiyagarayanagar")).toBeInTheDocument();
+    expect(screen.getByText("Zone / Region")).toBeInTheDocument();
+    expect(screen.getByText("CHENNAI ZONE")).toBeInTheDocument();
   });
 });

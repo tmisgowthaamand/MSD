@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 shadow-xs">
-                <img src="https://res.cloudinary.com/wq9znxvs/image/upload/v1792229405/msd/brand/logo.png" alt="Maha Seva Dal Logo" className="w-full h-full object-contain" />
+                <img src="/logo.png" alt="Maha Seva Dal Logo" className="w-full h-full object-contain" />
               </div>
               <span className="font-serif text-xl text-ink font-semibold tracking-tight">
                 Maha Seva Dal

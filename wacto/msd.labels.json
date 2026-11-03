@@ -1,0 +1,14 @@
+{
+  "opens_wacto": [
+    "Cadre Registration",
+    "Fill Profile Form"
+  ],
+  "backend_only": [
+    "Confirm Registration",
+    "Confirm & Take Oath",
+    "My Cadre ID Card"
+  ],
+  "dual": [
+    "Show Donation QR"
+  ]
+}

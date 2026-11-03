@@ -78,6 +78,12 @@
     }
   }
 
+  /* Ensure placeholders always preserve their natural casing (prevents text-transform: capitalize from capitalizing "e.g.") */
+  input::placeholder,
+  textarea::placeholder {
+    text-transform: none !important;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     letter-spacing: -0.02em;
@@ -93,25 +99,36 @@ body.modal-open {
 }
 
 /* ── Custom Thin Editorial Scrollbar ────────────────────────────── */
-.custom-scrollbar {
+.custom-scrollbar,
+.sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #d8cfc4 transparent;
+  scrollbar-color: #d4c8ba transparent;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.custom-scrollbar::-webkit-scrollbar,
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+.custom-scrollbar::-webkit-scrollbar-track,
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d8cfc4;
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4c8ba;
   border-radius: 9999px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #FF6200;
+}
+.custom-scrollbar::-webkit-scrollbar-button,
+.sidebar-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ── Hide Scrollbar Utility ──────────────────────────────────────── */
@@ -133,6 +150,20 @@ body.modal-open {
 
 .font-body {
   font-family: 'Inter', sans-serif;
+}
+
+/* ── Safe Area Inset Support for Modern Mobile Screens ────────────── */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* ── Component Primitives (BJP Official Colors) ─────────────────── */
@@ -210,5 +241,30 @@ body.modal-open {
     border-color: #ff6200 !important;
     outline: none !important;
     box-shadow: 0 0 0 3px rgba(255, 98, 0, 0.15) !important;
+  }
+
+  /* PVC ID Card High-Fidelity Clean Export Modes */
+  .card-export-active {
+    width: 315px !important;
+    min-width: 315px !important;
+    max-width: 315px !important;
+    height: 450px !important;
+    min-height: 450px !important;
+    max-height: 450px !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .card-export-active [data-slot-pill="true"],
+  .card-export-active [data-slot="lanyard"] > div,
+  .card-export-active .card-lanyard-slot > div {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  .card-export-print,
+  .card-export-share {
+    border-radius: 16px !important;
+    box-shadow: none !important;
   }
 }

@@ -1,11 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const connectDB = require("./config/db");
 const uploadRoutes = require("./routes/uploadRoutes");
 const memberRoutes = require("./routes/memberRoutes");
+const donationRoutes = require("./routes/donationRoutes");
+const whatsappRoutes = require("./routes/whatsappRoutes");
+const leadRoutes = require("./routes/leadRoutes");
+const whatsappCrmRoutes = require("./routes/whatsappCrmRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,7 +29,6 @@ const isTestEnv =
 if (!isTestEnv) {
   connectDB();
 }
-
 // ─── Security Headers (Helmet) ─────────────────────────────────
 app.use(
   helmet({
@@ -80,14 +84,83 @@ app.use(cors({
   },
   methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
-}));
+})); 
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
+// ─── Real-Time Request & Traffic Logger (Pass / Fail Detection) ────────
+app.use((req, res, next) => {
+  const start = Date.now();
+  const headerChannel = req.headers["x-client-channel"];
+  const inferredChannel = headerChannel ||
+    (req.originalUrl.includes("/admin") ? "ADMIN" :
+     req.originalUrl.includes("/flow") ? "WHATSAPP" : "WEB");
+
+  // Track response completion
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const isPass = status >= 200 && status < 400;
+    const resultTag = isPass
+      ? `\x1b[32m[PASS ✅ ${status}]\x1b[0m`
+      : `\x1b[31m[FAIL ❌ ${status}]\x1b[0m`;
+    
+    const icon = inferredChannel.toUpperCase().includes("WHATSAPP")
+      ? "📱"
+      : inferredChannel.toUpperCase().includes("ADMIN")
+      ? "🛡️"
+      : "🌐";
+
+    const channelTag = `\x1b[36m${icon} [${inferredChannel.toUpperCase()}]\x1b[0m`;
+    const timeStr = new Date().toLocaleTimeString("en-IN", { hour12: false });
+    const methodTag = `\x1b[1m${req.method}\x1b[0m`;
+
+    console.log(`[${timeStr}] ${channelTag} ${resultTag} ${methodTag} ${req.originalUrl} (${duration}ms)`);
+  });
+
+  next();
+});
+
+// ─── Dedicated Live Activity & Component Logger (Web + WhatsApp) ──────
+app.post("/api/logs/activity", (req, res) => {
+  const {
+    channel = "WEB",
+    component = "General",
+    action = "Action",
+    status = "PASS",
+    details = {},
+  } = req.body || {};
+
+  const timeStr = new Date().toLocaleTimeString("en-IN", { hour12: false });
+  const isPass = String(status).toUpperCase() === "PASS" || String(status).startsWith("20");
+  const resultTag = isPass
+    ? `\x1b[32m[PASS ✅]\x1b[0m`
+    : `\x1b[31m[FAIL ❌]\x1b[0m`;
+
+  const icon = channel.toUpperCase().includes("WHATSAPP")
+    ? "📱"
+    : channel.toUpperCase().includes("ADMIN")
+    ? "🛡️"
+    : "🌐";
+
+  const channelTag = `\x1b[35m${icon} [${channel.toUpperCase()}]\x1b[0m`;
+  const compTag = `\x1b[33m[${component}]\x1b[0m`;
+  const detailsStr = details && Object.keys(details).length > 0
+    ? ` | \x1b[90m${JSON.stringify(details)}\x1b[0m`
+    : "";
+
+  console.log(`[${timeStr}] ${channelTag} ${compTag} ${resultTag} ${action}${detailsStr}`);
+  res.status(200).json({ success: true, loggedAt: new Date().toISOString() });
+});
+
 // ─── Routes ──────────────────────────────────────────────────
 app.use("/api/upload", uploadRoutes);
 app.use("/api/members", memberRoutes);
+app.use("/api/donations", donationRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
+app.use("/api/leads", leadRoutes);
+app.use("/api/whatsapp-crm", whatsappCrmRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get("/health", (req, res) => {
@@ -132,12 +205,33 @@ if (require.main === module) {
     process.exit(1);
   }
 
+  const startTime = Date.now();
   server = app.listen(PORT, HOST, () => {
-    console.log(`✅ MSD Backend running on http://${HOST}:${PORT}`);
+    const bootDuration = Date.now() - startTime;
+    console.log(
+      `\x1b[32m⚡ [PASS] MSD High-Speed Backend Server Ready in ${bootDuration}ms: http://${HOST}:${PORT}\x1b[0m`
+    );
+    console.log(
+      `\x1b[36m📊 [INFO] Live Real-Time Web & WhatsApp Activity Logger Active\x1b[0m`
+    );
   });
+
+  // Dual-bind port 3000 so that `ngrok http 3000` connects seamlessly
+  let companionServer = null;
+  if (Number(PORT) !== 3000) {
+    try {
+      companionServer = app.listen(3000, HOST, () => {
+        console.log(
+          `\x1b[32m⚡ [PASS] Companion Port 3000 Active (supports ngrok http 3000)\x1b[0m`
+        );
+      });
+      companionServer.on("error", () => {});
+    } catch (e) {}
+  }
 
   const gracefulShutdown = (signal) => {
     console.log(`Received ${signal}. Shutting down gracefully...`);
+    if (companionServer) companionServer.close();
     if (server) {
       server.close(async () => {
         console.log("HTTP server closed.");

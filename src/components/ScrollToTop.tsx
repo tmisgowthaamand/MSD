@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { logActivity } from "@/utils/activityLogger";
 
 /**
  * Universal scroll-to-top helper compatible with Lenis smooth scroll and native window.
@@ -32,6 +33,17 @@ const ScrollToTop = () => {
   // Scroll to top whenever the route or location changes
   useEffect(() => {
     scrollToPageTop();
+    const channel = location.pathname.includes("/admin")
+      ? "ADMIN"
+      : location.pathname.includes("/flow")
+      ? "WHATSAPP"
+      : "WEB";
+    logActivity({
+      channel,
+      component: "PageNavigation",
+      action: `Viewed Page: ${location.pathname}`,
+      status: "PASS",
+    });
   }, [location.pathname, location.search, location.hash, location.key]);
 
   // Global link click listener: whenever user clicks ANY link on the page,

@@ -25,7 +25,7 @@
 ### Frontend Variables (Injected at Build Time)
 | Variable | Description | Example / Notes |
 | :--- | :--- | :--- |
-| `VITE_API_URL` | Public HTTPS URL of the backend API service | `${msd-backend.PUBLIC_URL}` or `https://api.mahasevadal.com` |
+| `VITE_API_URL` | Public HTTPS URL of the backend API service | `${msd-backend.PUBLIC_URL}` or `https://api.mahasevadal.org` |
 | `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud Name (public identifier) | `wq9znxvs` |
 | `VITE_CLOUDINARY_API_KEY` | Cloudinary Public API Key | `547291665178531` |
 
@@ -105,7 +105,7 @@ From the deployed environment, issue a request to `/health`. If `connectDB` cann
    ```
 5. Obtain SSL Certificate:
    ```bash
-   sudo certbot --nginx -d mahasevadal.com -d www.mahasevadal.com
+   sudo certbot --nginx -d mahasevadal.org -d www.mahasevadal.org
    ```
 6. Start backend using PM2:
    ```bash

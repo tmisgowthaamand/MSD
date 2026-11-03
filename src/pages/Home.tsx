@@ -407,8 +407,7 @@ const Home = () => {
             {/* Event Card 1 */}
             <div className="card-feature-cream flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="badge-coral-fill">Featured Event</span>
+                <div className="flex items-center justify-end mb-6">
                   <span className="text-xs text-muted-editorial font-mono">July 2025</span>
                 </div>
                 <h3 className="font-serif text-2xl text-ink mb-3">
@@ -420,7 +419,7 @@ const Home = () => {
 
                 <div className="p-4 rounded-lg bg-canvas border border-hairline space-y-2 mb-6">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-editorial">Expected Attendees:</span>
+                    <span className="text-muted-editorial">Attendees:</span>
                     <span className="text-ink font-semibold">5,000+ Volunteers</span>
                   </div>
                   <div className="flex justify-between text-xs">
@@ -441,8 +440,7 @@ const Home = () => {
             {/* Event Card 2 */}
             <div className="card-feature-cream flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="badge-coral-fill">Grand Celebration</span>
+                <div className="flex items-center justify-end mb-6">
                   <span className="text-xs text-muted-editorial font-mono">September 2025</span>
                 </div>
                 <h3 className="font-serif text-2xl text-ink mb-3">
