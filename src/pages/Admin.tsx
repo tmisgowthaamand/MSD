@@ -229,18 +229,48 @@ const getMemberWhatsAppUrl = (member: { whatsapp?: string; mobile?: string; full
   return `https://wa.me/${full}?text=${text}`;
 };
 
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes of idle window timeout
+
 const Admin = ({
   defaultTab = "dashboard",
 }: {
   defaultTab?: "dashboard" | "directory" | "analytics" | "donations" | "simulator" | "leads";
 } = {}) => {
+  const [sessionTimeoutMsg, setSessionTimeoutMsg] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem("msd_admin_token");
+      const lastActive = localStorage.getItem("msd_admin_last_activity");
+      if (stored && lastActive) {
+        const elapsed = Date.now() - parseInt(lastActive, 10);
+        if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+          localStorage.removeItem("msd_admin_token");
+          localStorage.removeItem("msd_admin_last_activity");
+          return "Session expired due to 30 minutes of inactivity. Please sign in again.";
+        }
+      }
+    } catch (e) {}
+    return "";
+  });
+
   const [token, setToken] = useState<string | null>(() => {
     const urlToken = new URLSearchParams(window.location.search).get("token");
     if (urlToken) {
       localStorage.setItem("msd_admin_token", urlToken);
+      localStorage.setItem("msd_admin_last_activity", String(Date.now()));
       return urlToken;
     }
-    return localStorage.getItem("msd_admin_token");
+    const stored = localStorage.getItem("msd_admin_token");
+    const lastActive = localStorage.getItem("msd_admin_last_activity");
+    if (stored && lastActive) {
+      const elapsed = Date.now() - parseInt(lastActive, 10);
+      if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+        return null;
+      }
+    }
+    if (stored && !lastActive) {
+      localStorage.setItem("msd_admin_last_activity", String(Date.now()));
+    }
+    return stored;
   });
 
   // Login form state
@@ -922,6 +952,8 @@ const Admin = ({
       }
 
       localStorage.setItem("msd_admin_token", json.token);
+      localStorage.setItem("msd_admin_last_activity", String(Date.now()));
+      setSessionTimeoutMsg("");
       setToken(json.token);
       logActivity({
         channel: "ADMIN",
@@ -942,17 +974,87 @@ const Admin = ({
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = (reason?: string) => {
     localStorage.removeItem("msd_admin_token");
+    localStorage.removeItem("msd_admin_last_activity");
     setToken(null);
     setMembers([]);
+    if (reason) {
+      setSessionTimeoutMsg(reason);
+    }
     logActivity({
       channel: "ADMIN",
       component: "Auth",
-      action: "Admin Logged Out",
+      action: reason ? `Admin Session Ended: ${reason}` : "Admin Logged Out",
       status: "PASS",
     });
   };
+
+  // ─── 30-Minute Inactivity / Idle Session Timeout ───────────────────────────
+  useEffect(() => {
+    if (!token) return;
+
+    // Check if idle time exceeded 30 minutes
+    const checkInactivity = () => {
+      try {
+        const storedLast = localStorage.getItem("msd_admin_last_activity");
+        const lastActive = storedLast ? parseInt(storedLast, 10) : Date.now();
+        const elapsed = Date.now() - lastActive;
+
+        if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+          handleLogout("Session expired due to 30 minutes of inactivity. Please sign in again.");
+        }
+      } catch (e) {}
+    };
+
+    // Throttled activity recorder (updates localStorage at most once every 15s to keep I/O light)
+    let lastRecorded = Date.now();
+    const recordActivity = () => {
+      const now = Date.now();
+      if (now - lastRecorded > 15000) {
+        lastRecorded = now;
+        try {
+          localStorage.setItem("msd_admin_last_activity", String(now));
+        } catch (e) {}
+      }
+    };
+
+    // User activity events that reset the 30-minute idle timer
+    const activityEvents = ["mousemove", "mousedown", "keydown", "scroll", "touchstart", "click"];
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, recordActivity, { passive: true });
+    });
+
+    // Check immediately when returning to tab or waking computer
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkInactivity();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Multi-tab synchronization: if logged out or timed out in another tab, log out immediately here
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "msd_admin_token" && !e.newValue) {
+        setToken(null);
+        setMembers([]);
+        setSessionTimeoutMsg("Session expired due to 30 minutes of inactivity. Please sign in again.");
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    // Periodic check every 15 seconds
+    const intervalId = setInterval(checkInactivity, 15000);
+
+    return () => {
+      activityEvents.forEach((evt) => {
+        window.removeEventListener(evt, recordActivity);
+      });
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, [token]);
 
   // Open Member Dossier
   const handleOpenMember = (member: Member, initialTab: "dossier" | "card" = "dossier") => {
@@ -1465,6 +1567,16 @@ const Admin = ({
                       <span>Remember session</span>
                     </label>
                   </div>
+
+                  {sessionTimeoutMsg && (
+                    <div
+                      role="alert"
+                      className="flex items-center gap-2.5 p-2.5 text-xs font-medium text-amber-900 bg-amber-50 border border-amber-200/90 rounded-xl shadow-xs transition-all duration-200"
+                    >
+                      <Clock size={15} className="shrink-0 text-amber-600" />
+                      <span>{sessionTimeoutMsg}</span>
+                    </div>
+                  )}
 
                   {loginError && (
                     <div
