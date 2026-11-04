@@ -161,7 +161,7 @@ const getAllLeads = async (req, res) => {
         { mobile: { $in: mobiles.map((m) => `+91 ${m}`) } },
       ],
     })
-      .select("registrationId fullName status mobile photoUrl wing state district pincode")
+      .select("registrationId fullName status mobile photoUrl wing state district pincode channelSource registrationSource")
       .lean();
 
     const memberMap = new Map();
@@ -174,9 +174,17 @@ const getAllLeads = async (req, res) => {
       const cleanPhone = String(l.mobile).replace(/\D/g, "").slice(-10);
       const matchedMember = memberMap.get(cleanPhone);
       const isCompleted = !!matchedMember || l.status === "RECOVERED";
+      const matchedSource = String(matchedMember?.channelSource || matchedMember?.registrationSource || "").toLowerCase();
+      const rawLeadChannel = String(l.channel || "").toLowerCase();
+      const resolvedChannel = matchedSource.includes("web")
+        ? "web"
+        : rawLeadChannel.includes("whatsapp")
+        ? "whatsapp"
+        : "web";
       return {
         ...l.toObject(),
         id: l._id.toString(),
+        channel: resolvedChannel,
         status: isCompleted ? "RECOVERED" : l.status,
         isCompleted,
         registrationId: matchedMember?.registrationId || null,
@@ -225,7 +233,7 @@ const sendLeadNudge = async (req, res) => {
             $set: {
               mobile: cleanPhone,
               fullName: req.body?.fullName || "Candidate",
-              channel: req.body?.channel || "whatsapp",
+              channel: req.body?.channel || "web",
               lastStepCompleted: req.body?.lastStepCompleted || "INCOMPLETE",
               lastStepLabel: req.body?.lastStepLabel || "Incomplete Registration",
               partialData: req.body?.partialData || {},

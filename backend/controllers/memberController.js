@@ -673,10 +673,22 @@ const registerMember = async (req, res) => {
         {
           $set: {
             status: "RECOVERED",
+            channel: "web",
             lastStepLabel: "Completed & Registered (Recovered via Web)",
           },
         }
       );
+      const WhatsAppConversation = require("../models/WhatsAppConversation");
+      await WhatsAppConversation.findOneAndUpdate(
+        { mobile: cleanPhone },
+        {
+          $set: {
+            channel: "web",
+            registrationStatus: "APPROVED",
+            customerName: saved.fullName,
+          },
+        }
+      ).catch(() => {});
     } catch (recErr) {}
 
     // Sync to file

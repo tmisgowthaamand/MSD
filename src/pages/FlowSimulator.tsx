@@ -652,39 +652,8 @@ const FlowIdCardBubble: React.FC<FlowIdCardBubbleProps> = ({
         triggerDownload(backUrl, `${cleanRegId}_Back.png`);
       }
 
-      // Sync ID Card Download Event to WhatsApp CRM Inbox
-      const downloadLabel =
-        target === "pdf"
-          ? "Download PDF (A4)"
-          : target === "both"
-          ? "Both Sides (PNG)"
-          : target === "front"
-          ? "Front Side (PNG)"
-          : "Back Side (PNG)";
-      fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile: member.mobile || "9871454424",
-          customerName: member.fullName || "Cadre Member",
-          memberType: isApproved ? "EXISTING_MEMBER" : "NEW_MEMBER",
-          channelSource: "flow_simulator",
-          registrationStatus: "APPROVED",
-          registrationId: member.registrationId,
-          wing: member.wing,
-          state: member.state,
-          district: member.district,
-          stepLabel: `🪪 Downloaded Digital ID Card (${downloadLabel})`,
-          buttonClicked: downloadLabel,
-          userMessage: `🪪 Downloaded Digital Cadre ID Card (${downloadLabel}) — ${member.registrationId}`,
-          cardData: {
-            ...member,
-            action: target === "pdf" ? "DOWNLOADED_PDF" : "DOWNLOADED_PNG",
-          },
-          cardViewed: true,
-          cardDownloaded: true,
-        }),
-      }).catch(() => {});
+      // ID Card Download simulated locally in Flow Simulator
+      console.log(`[Flow Simulator] ID Card Downloaded locally: ${downloadLabel}`);
     } catch (err: any) {
       console.error("ID Card download failed:", err);
       alert("ID Card download error: " + (err.message || "Failed to download"));
@@ -1106,8 +1075,8 @@ export default function FlowSimulator({ embedded = false }: { embedded?: boolean
     }
   }, [messages]);
 
-  // Helper to sync every Flow Simulator step & click to WhatsApp CRM Inbox
-  const syncStepToInbox = (extra: {
+  // Helper for Flow Simulator local telemetry (does not pollute live inbox)
+  const syncStepToInbox = (_extra: {
     stepLabel: string;
     buttonClicked?: string;
     userMessage?: string;
@@ -1117,34 +1086,7 @@ export default function FlowSimulator({ embedded = false }: { embedded?: boolean
     cardDownloaded?: boolean;
     overrideMember?: any;
   }) => {
-    const activeTarget =
-      extra.overrideMember ||
-      (persona === "approved_cadre" ? approvedJaysuryaMember : candidateData);
-    const isExisting = Boolean(persona === "approved_cadre" || sessionRegisteredMember);
-    fetch(getApiUrl("/api/whatsapp-crm/inbox/track-event"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mobile: activeTarget.mobile || "9871454424",
-        customerName: activeTarget.fullName || "Deepu Kumar",
-        memberType: isExisting ? "EXISTING_MEMBER" : "NEW_MEMBER",
-        channelSource: "flow_simulator",
-        registrationStatus:
-          isExisting || extra.cardData
-            ? "APPROVED"
-            : persona === "dropoff_cadre"
-            ? "INCOMPLETE"
-            : "INCOMPLETE",
-        registrationId:
-          extra.cardData?.registrationId ||
-          sessionRegisteredMember?.registrationId ||
-          (persona === "approved_cadre" ? approvedJaysuryaMember.registrationId : null),
-        wing: activeTarget.wing || "Legal Wing",
-        state: activeTarget.state || "Tamil Nadu",
-        district: activeTarget.district || "Viluppuram District",
-        ...extra,
-      }),
-    }).catch(() => {});
+    // Simulator steps run locally in memory without injecting mock records into live CRM
   };
 
   // Initial Welcome sequence

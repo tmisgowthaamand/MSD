@@ -824,6 +824,20 @@ const Admin = ({
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Global Header Refresh Trigger across all Admin views (Directory, CRM Leads, Inbox, Drop-offs, Donations)
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleHeaderRefresh = async () => {
+    setRefreshing(true);
+    setRefreshKey((prev) => prev + 1);
+    try {
+      await fetchMembers(page, limit, true);
+      window.dispatchEvent(new CustomEvent("msd:admin-refresh"));
+    } finally {
+      setTimeout(() => setRefreshing(false), 400);
+    }
+  };
+
   // Lock body & html scroll, pause Lenis, and handle Escape key when modals are open
   useEffect(() => {
     if (selectedMember || cardSettingsModalOpen || memberToDelete || remarkModalMember || statusActionTarget || lightboxPhoto || moreMenuOpen || bulkApproveModalOpen || activeRowMenuId) {
@@ -2053,29 +2067,11 @@ const Admin = ({
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setCardSettingsModalOpen(true)}
+                  onClick={handleHeaderRefresh}
                   className="btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer"
-                  title="Configure Authorized Seal & Signatory on ID Cards"
+                  title="Refresh active view"
                 >
-                  <Award size={13} className="text-[#FF6200]" />
-                  <span className="hidden xl:inline">ID Seal & Signatory</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleExportCSV}
-                  className="btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer"
-                  title="Download CSV"
-                >
-                  <Download size={13} />
-                  <span className="hidden sm:inline">Export CSV</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fetchMembers(page, limit)}
-                  className="btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer"
-                  title="Refresh list"
-                >
-                  <RefreshCw size={13} className={refreshing || loading ? "animate-spin" : ""} />
+                  <RefreshCw size={13} className={refreshing || loading ? "animate-spin text-[#FF6200]" : ""} />
                   <span className="hidden sm:inline">Refresh</span>
                 </button>
                 <button
@@ -3512,25 +3508,27 @@ const Admin = ({
             </div>
             ) : activeAdminTab === "donations" ? (
               <DonationsManager
+                key={`donations-${refreshKey}`}
                 token={token}
                 onPendingCountChange={(cnt) => setPendingDonationsCount(cnt)}
               />
             ) : activeAdminTab === "bot-messages" ? (
-              <WhatsAppCrmManager initialSection="bot-messages" token={token} />
+              <WhatsAppCrmManager key={`bot-messages-${refreshKey}`} initialSection="bot-messages" token={token} />
             ) : activeAdminTab === "simulator" ? (
               <FlowSimulator embedded />
             ) : activeAdminTab === "crm-inbox" ? (
               <WhatsAppCrmManager
+                key={`crm-inbox-${refreshKey}`}
                 initialSection="inbox"
                 initialMobile={selectedInboxMobile || undefined}
                 token={token}
               />
             ) : activeAdminTab === "crm-leads" ? (
-              <WhatsAppCrmManager initialSection="leads" token={token} />
+              <WhatsAppCrmManager key={`crm-leads-${refreshKey}`} initialSection="leads" token={token} />
             ) : activeAdminTab === "crm-templates" ? (
-              <WhatsAppCrmManager initialSection="templates" token={token} />
+              <WhatsAppCrmManager key={`crm-templates-${refreshKey}`} initialSection="templates" token={token} />
             ) : (
-              <IncompleteLeads embedded />
+              <IncompleteLeads key={`incomplete-leads-${refreshKey}`} embedded />
             )}
           </div>
 

@@ -267,9 +267,9 @@ const getCrmOverview = async (req, res) => {
 
     // Fetch live MongoDB collections (Templates, Campaigns & Config are maintained in-memory per requirement)
     const [members, rawIncomplete, conversations] = await Promise.all([
-      Member.find().sort({ createdAt: -1 }).limit(250).lean(),
-      IncompleteLead.find().sort({ abandonedAt: -1 }).limit(250).lean(),
-      WhatsAppConversation.find().sort({ lastMessageAt: -1 }).limit(250).lean(),
+      Member.find({ mobile: { $ne: "9871454424" }, fullName: { $not: /Deepu Kumar/i } }).sort({ createdAt: -1 }).limit(250).lean(),
+      IncompleteLead.find({ mobile: { $ne: "9871454424" }, fullName: { $not: /Deepu Kumar/i } }).sort({ abandonedAt: -1 }).limit(250).lean(),
+      WhatsAppConversation.find({ mobile: { $ne: "9871454424" }, customerName: { $not: /Deepu Kumar/i } }).sort({ lastMessageAt: -1 }).limit(250).lean(),
     ]);
 
     const templates = inMemoryTemplates;
@@ -286,11 +286,15 @@ const getCrmOverview = async (req, res) => {
         ? telecallers[index % telecallers.length]
         : null;
 
+      // Completed cadre members registered via portal are 'web' unless explicitly from whatsapp_bot
+      const isWhatsAppBot = m.registrationSource === "whatsapp_bot" || m.channelSource === "whatsapp_bot";
+      const memberChannel = isWhatsAppBot ? "whatsapp" : "web";
+
       unifiedLeadsMap.set(cleanPhone, {
         id: m._id.toString(),
         mobile: cleanPhone,
         fullName: m.fullName,
-        channel: m.registrationSource === "whatsapp" || index % 2 === 0 ? "whatsapp" : "web",
+        channel: memberChannel,
         leadCategory: "COMPLETED",
         registrationId: m.registrationId,
         memberStatus: m.status,
@@ -333,11 +337,17 @@ const getCrmOverview = async (req, res) => {
           ? telecallers[(index + 1) % telecallers.length]
           : null;
 
+      const isWhatsAppLead =
+        String(l.channel || "").toLowerCase() === "whatsapp" &&
+        !l.registrationId &&
+        !String(l.lastStepCompleted || "").startsWith("WEB_");
+      const leadChannel = isWhatsAppLead ? "whatsapp" : "web";
+
       unifiedLeadsMap.set(cleanPhone, {
         id: l._id.toString(),
         mobile: cleanPhone,
         fullName: l.fullName || "Candidate",
-        channel: l.channel || "whatsapp",
+        channel: leadChannel,
         leadCategory: l.status === "RECOVERED" ? "COMPLETED" : "INCOMPLETE",
         registrationId: l.registrationId || null,
         memberStatus: l.status === "RECOVERED" ? "APPROVED" : "INCOMPLETE",

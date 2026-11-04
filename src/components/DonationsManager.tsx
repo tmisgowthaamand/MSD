@@ -204,6 +204,17 @@ export const DonationsManager: React.FC<DonationsManagerProps> = ({
     setPage(1);
   }, [statusFilter]);
 
+  // Listen for global Header Refresh clicks from Admin header toolbar
+  useEffect(() => {
+    const handleAdminRefresh = () => {
+      fetchDonations(page);
+    };
+    window.addEventListener("msd:admin-refresh", handleAdminRefresh);
+    return () => {
+      window.removeEventListener("msd:admin-refresh", handleAdminRefresh);
+    };
+  }, [fetchDonations, page]);
+
   // Handle Verify Action
   const handleVerifyDonation = async (donation: Donation) => {
     setActionLoadingId(donation._id);

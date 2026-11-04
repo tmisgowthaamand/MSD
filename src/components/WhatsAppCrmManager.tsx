@@ -540,11 +540,23 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
       if (!res.ok) throw new Error("Failed to load CRM data");
       const data = await res.json();
       if (data.success) {
-        setConversations(data.conversations || []);
-        setLeads(data.leads || []);
+        const cleanConvs = (data.conversations || []).filter(
+          (c: any) => c.mobile !== "9871454424" && !/Deepu Kumar/i.test(c.customerName || "")
+        );
+        const cleanLeads = (data.leads || [])
+          .filter((l: any) => l.mobile !== "9871454424" && !/Deepu Kumar/i.test(l.fullName || ""))
+          .map((l: any) => ({
+            ...l,
+            channel:
+              l.registrationId || String(l.channel || "").toLowerCase() === "web" || !String(l.channel || "").toLowerCase().includes("whatsapp")
+                ? "web"
+                : "whatsapp",
+          }));
+        setConversations(cleanConvs);
+        setLeads(cleanLeads);
         setTemplates(data.templates || []);
-        if (data.conversations?.length > 0) {
-          setSelectedMobile((prev) => prev || data.conversations[0].mobile);
+        if (cleanConvs.length > 0) {
+          setSelectedMobile((prev) => (prev === "9871454424" ? cleanConvs[0].mobile : prev || cleanConvs[0].mobile));
         }
       }
     } catch (err: unknown) {
@@ -557,6 +569,17 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
 
   useEffect(() => {
     fetchCrmOverview();
+  }, [fetchCrmOverview]);
+
+  // Listen for global Header Refresh clicks from Admin header toolbar
+  useEffect(() => {
+    const handleAdminRefresh = () => {
+      fetchCrmOverview(false);
+    };
+    window.addEventListener("msd:admin-refresh", handleAdminRefresh);
+    return () => {
+      window.removeEventListener("msd:admin-refresh", handleAdminRefresh);
+    };
   }, [fetchCrmOverview]);
 
   // Active Conversation in Inbox (null if closed or not selected)
@@ -657,6 +680,9 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
+      if (c.mobile === "9871454424" || /Deepu Kumar/i.test(c.customerName || "")) {
+        return false;
+      }
       if (inboxChannelTab === "web") {
         if (c.channel !== "web") return false;
       } else if (inboxChannelTab === "whatsapp") {
@@ -708,6 +734,9 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
   // Filtered Unified Leads (Completed vs Incomplete, Deduplicated)
   const filteredLeads = useMemo(() => {
     return leads.filter((l) => {
+      if (l.mobile === "9871454424" || /Deepu Kumar/i.test(l.fullName || "")) {
+        return false;
+      }
       if (leadCategoryTab !== "ALL" && l.leadCategory !== leadCategoryTab) return false;
       if (leadChannelFilter !== "ALL" && l.channel !== leadChannelFilter) return false;
       if (leadSearch.trim()) {
@@ -1782,7 +1811,7 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                                 : conv.registrationStatus === "PENDING"
                                 ? "Pending"
                                 : conv.registrationStatus === "INCOMPLETE"
-                                ? "Broadcast"
+                                ? "Incomplete"
                                 : "Solved"}
                             </span>
                             {conv.cardDownloaded && (
@@ -1945,7 +1974,7 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                       >
                         <option value="APPROVED">Open (Approved)</option>
                         <option value="PENDING">Pending</option>
-                        <option value="INCOMPLETE">Broadcast</option>
+                        <option value="INCOMPLETE">Incomplete</option>
                         <option value="REJECTED">Solved</option>
                       </select>
 
@@ -2914,9 +2943,9 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-stone-500">Source</span>
                         <span className="font-semibold text-stone-800 truncate max-w-[155px]">
-                          {activeConversation.channel === "web"
-                            ? "web_registration_portal"
-                            : "whatsapp_cloud_chat"}
+                          {String(activeConversation.channel || "").toLowerCase().includes("web")
+                            ? "Web Registration Portal"
+                            : "WhatsApp Cloud Chat"}
                         </span>
                       </div>
                     </div>
@@ -3533,20 +3562,17 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                         )}
                       </td>
                       <td className="py-2.5 px-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            lead.channel === "whatsapp"
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                              : "bg-sky-50 text-sky-800 border border-sky-200"
-                          }`}
-                        >
-                          {lead.channel === "whatsapp" ? (
-                            <Smartphone size={11} />
-                          ) : (
+                        {lead.registrationId || String(lead.channel || "").toLowerCase() === "web" || !String(lead.channel || "").toLowerCase().includes("whatsapp") ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
                             <Globe size={11} />
-                          )}
-                          <span>{lead.channel === "whatsapp" ? "WhatsApp" : "Website"}</span>
-                        </span>
+                            <span>Web</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <Smartphone size={11} />
+                            <span>WhatsApp</span>
+                          </span>
+                        )}
                       </td>
                       <td className="py-2.5 px-3">
                         {lead.leadCategory === "COMPLETED" ? (
