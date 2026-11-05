@@ -262,8 +262,81 @@ const sendMetaWhatsAppMessage = (toPhone, messageText) => {
   });
 };
 
+/**
+ * Download (and decrypt) a photo/document uploaded inside a WhatsApp Flow.
+ *
+ * Flow PhotoPicker media is NOT a regular Graph API media ID — it is delivered as an
+ * encrypted file on a time-limited CDN URL (~15 min) plus `encryption_metadata`
+ * (encryption_key, hmac_key, iv, encrypted_hash, plaintext_hash, all base64).
+ * We download the ciphertext, strip the trailing 10-byte HMAC, and AES-256-CBC
+ * decrypt it with the provided key + iv. Falls back to a plain download, or to the
+ * Graph media API if the item is just a media id.
+ *
+ * @param {object|string} item one element of responseJson.<photo field>
+ * @returns {Promise<Buffer|null>} the decrypted image bytes, or null
+ */
+const crypto = require("crypto");
+const downloadFlowMediaBuffer = async (item) => {
+  try {
+    if (!item) return null;
+    // Plain media id (string) -> Graph API
+    if (typeof item === "string") return await fetchMetaMediaBuffer(item.trim());
+    if (typeof item !== "object") return null;
+
+    const meta = item.encryption_metadata || item.encryptionMetadata;
+    const cdnUrl = item.cdn_url || item.url || item.cdnUrl;
+
+    // Encrypted flow media (the normal case for PhotoPicker)
+    if (cdnUrl && meta && meta.encryption_key && meta.iv) {
+      const res = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) {
+        console.warn("[Flow Media] CDN download failed:", res.status);
+        return null;
+      }
+      const encrypted = Buffer.from(await res.arrayBuffer());
+      const encKey = Buffer.from(meta.encryption_key, "base64");
+      const iv = Buffer.from(meta.iv, "base64");
+      // Last 10 bytes are the HMAC tag; the rest is AES-CBC ciphertext
+      const ciphertext = encrypted.subarray(0, encrypted.length - 10);
+      try {
+        if (meta.hmac_key) {
+          const hmacKey = Buffer.from(meta.hmac_key, "base64");
+          const mac = encrypted.subarray(encrypted.length - 10);
+          const expected = crypto
+            .createHmac("sha256", hmacKey)
+            .update(Buffer.concat([iv, ciphertext]))
+            .digest()
+            .subarray(0, 10);
+          if (!expected.equals(mac)) console.warn("[Flow Media] HMAC mismatch (continuing to decrypt)");
+        }
+      } catch (hErr) {}
+      const algo = encKey.length === 16 ? "aes-128-cbc" : "aes-256-cbc";
+      const decipher = crypto.createDecipheriv(algo, encKey, iv);
+      const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+      console.log(`[Flow Media] Decrypted flow image (${decrypted.length} bytes)`);
+      return decrypted;
+    }
+
+    // Unencrypted CDN URL
+    if (cdnUrl && !meta) {
+      const res = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
+      if (res.ok) return Buffer.from(await res.arrayBuffer());
+    }
+
+    // Plain Graph media id on the object
+    const mediaId = item.media_id || item.id || item.file_id;
+    if (mediaId) return await fetchMetaMediaBuffer(String(mediaId).trim());
+
+    return null;
+  } catch (e) {
+    console.warn("[Flow Media] download/decrypt error:", e.message);
+    return null;
+  }
+};
+
 module.exports = {
   fetchMetaMediaBuffer,
+  downloadFlowMediaBuffer,
   uploadMetaMedia,
   sendMetaImageMessage,
   sendMetaWhatsAppMessage,

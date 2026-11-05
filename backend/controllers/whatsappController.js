@@ -5,7 +5,7 @@ const IncompleteLead = require("../models/IncompleteLead");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const { getDistrictDataSource } = require("./whatsappFlowEndpoint");
 const { generateCadreIdCards } = require("../utils/idCardGenerator");
-const { fetchMetaMediaBuffer, uploadMetaMedia, sendMetaImageMessage } = require("../utils/metaMedia");
+const { fetchMetaMediaBuffer, downloadFlowMediaBuffer, uploadMetaMedia, sendMetaImageMessage } = require("../utils/metaMedia");
 
 /**
  * Helper to dispatch an outbound text message via Meta WhatsApp Cloud API
@@ -474,23 +474,27 @@ const handleIncomingWebhook = async (req, res) => {
               } else {
                 newMember = new Member({ ...memberFields, mobile: cleanPhone, registrationId: regId });
               }
-              // Download candidate photo from Meta CDN if provided and save locally
+              // Download candidate photo. Flow PhotoPicker media is an ENCRYPTED file on a
+              // time-limited CDN URL (not a plain Graph media id), so decrypt it via the
+              // encryption_metadata; downloadFlowMediaBuffer also handles media ids.
               let candidatePhotoBuffer = null;
               try {
-                let candidateMediaId = null;
+                let photoItem = null;
                 if (responseJson.photo) {
-                  const photoItem = Array.isArray(responseJson.photo) ? responseJson.photo[0] : responseJson.photo;
-                  if (photoItem) {
-                    candidateMediaId =
-                      typeof photoItem === "object" && photoItem !== null
-                        ? photoItem.id || photoItem.file_id
-                        : String(photoItem).trim();
-                  }
+                  photoItem = Array.isArray(responseJson.photo) ? responseJson.photo[0] : responseJson.photo;
+                  try {
+                    console.log(
+                      "[Flow] Photo item keys:",
+                      typeof photoItem === "object" && photoItem
+                        ? Object.keys(photoItem).join(",")
+                        : String(photoItem).slice(0, 60)
+                    );
+                  } catch (logErr) {}
                 }
 
-                if (candidateMediaId) {
-                  console.log(`[Flow] Fetching candidate photo from Meta CDN: ${candidateMediaId}...`);
-                  candidatePhotoBuffer = await fetchMetaMediaBuffer(candidateMediaId);
+                if (photoItem) {
+                  console.log(`[Flow] Retrieving candidate photo from WhatsApp...`);
+                  candidatePhotoBuffer = await downloadFlowMediaBuffer(photoItem);
                   if (candidatePhotoBuffer) {
                     const safeRegId = regId.replace(/[^a-zA-Z0-9_-]/g, "");
                     // Store the photo IN MongoDB as a base64 data URI so the dashboard
@@ -763,6 +767,7 @@ const handleIncomingWebhook = async (req, res) => {
                   `Your official Digital Cadre ID Card will become available as soon as your application is approved on the national portal.\n\n` +
                   `_Vande Mataram · Unity of People_`;
                 await sendMetaWhatsAppMessage(from, pendingNotice);
+                await sendMetaInteractiveList(from, !!existingMember, existingMember);
                 continue;
               }
 
@@ -775,6 +780,7 @@ const handleIncomingWebhook = async (req, res) => {
                   `*Reason / Remarks:* ${existingMember.adminNotes || "Details or photo did not meet requirements."}\n\n` +
                   `Please contact Central Secretariat Helpline (+91 9994625690) or resubmit via mahasevadal.com.`;
                 await sendMetaWhatsAppMessage(from, rejectNotice);
+                await sendMetaInteractiveList(from, !!existingMember, existingMember);
                 continue;
               }
 
@@ -827,6 +833,8 @@ const handleIncomingWebhook = async (req, res) => {
                 `_Type "Hi" to view services._`;
               await sendMetaWhatsAppMessage(from, noCardMsg);
             }
+            // Re-show the main service menu so the user can pick another option
+            await sendMetaInteractiveList(from, !!existingMember, existingMember);
             continue;
           }
 
@@ -846,8 +854,10 @@ const handleIncomingWebhook = async (req, res) => {
               `🤝 *Unity (Ekta):* Transcending caste, creed, and regional divides.\n` +
               `🇮🇳 *Selfless Seva:* Free healthcare camps, education kits for underprivileged children, and disaster relief.\n` +
               `⚖️ *Discipline & Civic Duty:* Safeguarding constitutional values.\n\n` +
-              `_Type "Hi" anytime to open the service menu._`;
+              `_Choose another service below, or type "Hi" anytime._`;
             await sendMetaWhatsAppMessage(from, historyMsg);
+            // Re-show the main service menu so the user can pick another option
+            await sendMetaInteractiveList(from, !!existingMember, existingMember);
             continue;
           }
 
@@ -866,8 +876,10 @@ const handleIncomingWebhook = async (req, res) => {
               `🔗 *Official Website:* https://mahasevadal.com\n` +
               `🪪 *ID Card Verification:* https://mahasevadal.com/status\n` +
               `🤝 *Cadre Registration:* https://mahasevadal.com/register\n\n` +
-              `_Type "Hi" to return to the service menu._`;
+              `_Choose another service below, or type "Hi" anytime._`;
             await sendMetaWhatsAppMessage(from, websiteMsg);
+            // Re-show the main service menu so the user can pick another option
+            await sendMetaInteractiveList(from, !!existingMember, existingMember);
             continue;
           }
 
@@ -885,9 +897,29 @@ const handleIncomingWebhook = async (req, res) => {
               `💳 *Official UPI ID:* \`mahasevadal@sbi\`\n` +
               `🏦 *Account Name:* Maha Seva Dal Central Trust\n` +
               `🏦 *Bank:* State Bank of India\n\n` +
-              `After making payment, please send your *12-digit UTR / Transaction Reference Number* here to receive your official 80G tax-exempt receipt!\n\n` +
+              `*Scan the QR above with any UPI app to pay.*\n\n` +
+              `After payment, please send your *12-digit UTR / Transaction Reference Number* here to receive your official 80G tax-exempt receipt!\n\n` +
               `_Example: UTR 429188291045_`;
-            await sendMetaWhatsAppMessage(from, donateMsg);
+            // Send the official UPI QR image with the donation details as caption
+            let donateQrSent = false;
+            try {
+              const qrPath = path.resolve(__dirname, "../../public/donation-qr.png");
+              if (fs.existsSync(qrPath)) {
+                const qrBuf = fs.readFileSync(qrPath);
+                const qrUpload = await uploadMetaMedia(qrBuf, "donation-qr.png", "image/png");
+                if (qrUpload.success && qrUpload.mediaId) {
+                  await sendMetaImageMessage(from, qrUpload.mediaId, donateMsg);
+                  donateQrSent = true;
+                }
+              }
+            } catch (qrErr) {
+              console.warn("[Donate] Could not send UPI QR image:", qrErr.message);
+            }
+            if (!donateQrSent) {
+              await sendMetaWhatsAppMessage(from, donateMsg);
+            }
+            // Re-show the main service menu so the user can pick another option
+            await sendMetaInteractiveList(from, !!existingMember, existingMember);
             continue;
           }
 

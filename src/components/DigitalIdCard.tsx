@@ -2243,10 +2243,15 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
 
                 {/* Top Row: Photo & Core Identifiers */}
                 <div className="flex items-start gap-2.5">
-                  {/* Photo Box */}
+                  {/* Photo Box — shows ONLY the member's own uploaded photo.
+                      If none (or it fails to load), a neutral initial avatar is shown
+                      behind it, never another person's portrait. */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-[78px] h-[94px] rounded-lg overflow-hidden border-2 border-[#FF6200] ring-2 ring-white/90 ring-inset bg-surface-soft shadow-xs flex items-center justify-center">
-                      {member.photoUrl ? (
+                    <div className="w-[78px] h-[94px] rounded-lg overflow-hidden border-2 border-[#FF6200] ring-2 ring-white/90 ring-inset bg-[#faede3] shadow-xs flex items-center justify-center relative">
+                      <span className="absolute inset-0 flex items-center justify-center text-[#FF6200] font-serif font-black text-2xl select-none">
+                        {(member.fullName || "M").charAt(0).toUpperCase()}
+                      </span>
+                      {(photoDataUrl || member.photoUrl) && (
                         <img
                           src={photoDataUrl || member.photoUrl}
                           alt={member.fullName}
@@ -2257,15 +2262,10 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                               return;
                             }
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/founder-saragabani-gopu-portrait.jpg";
+                            // Reveal the neutral initial avatar behind — never another person's photo
+                            e.currentTarget.style.display = "none";
                           }}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img
-                          src="/founder-saragabani-gopu-portrait.jpg"
-                          alt="Cadre Member"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover relative"
                         />
                       )}
                     </div>
