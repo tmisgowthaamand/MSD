@@ -232,9 +232,9 @@ if (require.main === module) {
     );
   });
 
-  // Dual-bind port 3000 so that `ngrok http 3000` connects seamlessly
+  // Dual-bind port 3000 only if explicitly enabled via COMPANION_PORT_3000=true
   let companionServer = null;
-  if (Number(PORT) !== 3000) {
+  if (process.env.COMPANION_PORT_3000 === "true" && Number(PORT) !== 3000) {
     try {
       companionServer = app.listen(3000, HOST, () => {
         console.log(
