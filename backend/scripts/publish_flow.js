@@ -3,7 +3,7 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const TOKEN = process.env.WHATSAPP_TOKEN || process.env.META_ACCESS_TOKEN;
-const FLOW_ID = "1126482169890474";
+const FLOW_ID = process.env.WHATSAPP_FLOW_ID;
 
 const options = {
   hostname: "graph.facebook.com",

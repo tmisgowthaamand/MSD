@@ -3,6 +3,7 @@ const IncompleteLead = require("../models/IncompleteLead");
 const Member = require("../models/Member");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const { sendMetaWhatsAppMessage } = require("./whatsappController");
+const { resolveChannel } = require("../utils/channelResolver");
 
 // Helper to track lead internally
 const trackLeadInternal = async ({
@@ -170,28 +171,50 @@ const getAllLeads = async (req, res) => {
       memberMap.set(clean, m);
     });
 
-    const leads = rawLeads.map((l) => {
-      const cleanPhone = String(l.mobile).replace(/\D/g, "").slice(-10);
-      const matchedMember = memberMap.get(cleanPhone);
-      const isCompleted = !!matchedMember || l.status === "RECOVERED";
-      const matchedSource = String(matchedMember?.channelSource || matchedMember?.registrationSource || "").toLowerCase();
-      const rawLeadChannel = String(l.channel || "").toLowerCase();
-      const resolvedChannel = matchedSource.includes("web")
-        ? "web"
-        : rawLeadChannel.includes("whatsapp")
-        ? "whatsapp"
-        : "web";
-      return {
-        ...l.toObject(),
-        id: l._id.toString(),
-        channel: resolvedChannel,
-        status: isCompleted ? "RECOVERED" : l.status,
-        isCompleted,
-        registrationId: matchedMember?.registrationId || null,
-        memberStatus: matchedMember?.status || null,
-        memberPhotoUrl: matchedMember?.photoUrl || null,
-      };
-    });
+    // Detect genuine WhatsApp interaction (conversation channel is whatsapp) for
+    // accurate "both" attribution — a web-portal conversation thread does not count.
+    const waConvos = await WhatsAppConversation.find({
+      mobile: { $in: mobiles },
+      channel: { $regex: /whatsapp/i },
+    })
+      .select("mobile")
+      .lean();
+    const waConvoSet = new Set(waConvos.map((c) => String(c.mobile).replace(/\D/g, "").slice(-10)));
+
+    // Mobiles of leads that have already completed registration (now Members)
+    const completedMobiles = [];
+
+    const leads = rawLeads
+      .map((l) => {
+        const cleanPhone = String(l.mobile).replace(/\D/g, "").slice(-10);
+        const matchedMember = memberMap.get(cleanPhone);
+        const isCompleted = !!matchedMember || l.status === "RECOVERED" || l.leadCategory === "COMPLETED";
+        if (isCompleted) completedMobiles.push(l.mobile);
+        const resolvedChannel = resolveChannel({
+          memberChannelSource: matchedMember?.channelSource || matchedMember?.registrationSource,
+          leadChannel: l.channel,
+          hasWhatsAppConvo: waConvoSet.has(cleanPhone),
+        });
+        return {
+          ...l.toObject(),
+          id: l._id.toString(),
+          channel: resolvedChannel,
+          status: isCompleted ? "RECOVERED" : l.status,
+          isCompleted,
+          registrationId: matchedMember?.registrationId || null,
+          memberStatus: matchedMember?.status || null,
+          memberPhotoUrl: matchedMember?.photoUrl || null,
+        };
+      })
+      // Completed registrations belong on the Members (Cadre Directory) page, not
+      // the incomplete recovery list — drop them so they "transfer out".
+      .filter((l) => !l.isCompleted);
+
+    // Self-healing cleanup: physically remove completed leads so they never
+    // resurface here (covers records created by any path, past or future).
+    if (completedMobiles.length > 0) {
+      IncompleteLead.deleteMany({ mobile: { $in: completedMobiles } }).catch(() => {});
+    }
 
     return res.status(200).json({ success: true, count: leads.length, leads });
   } catch (error) {

@@ -32,7 +32,7 @@ interface IncompleteLead {
   id: string;
   fullName: string;
   mobile: string;
-  channel: "web" | "whatsapp";
+  channel: "web" | "whatsapp" | "both";
   lastStepCompleted: string;
   lastStepLabel: string;
   partialData: {
@@ -92,7 +92,10 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
           id: l._id || l.id,
           fullName: l.fullName || "Candidate",
           mobile: l.mobile,
-          channel: String(l.channel || "web").toLowerCase().includes("whatsapp") ? "whatsapp" : "web",
+          channel: (() => {
+            const c = String(l.channel || "web").toLowerCase();
+            return c.includes("both") ? "both" : c.includes("whatsapp") ? "whatsapp" : "web";
+          })(),
           lastStepCompleted: l.lastStepCompleted || "INCOMPLETE",
           lastStepLabel: l.lastStepLabel || "Incomplete Registration",
           partialData: l.partialData || {},
@@ -159,7 +162,8 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
 
   // Filtered leads
   const filteredLeads = leads.filter((lead) => {
-    if (channelFilter !== "all" && lead.channel !== channelFilter) return false;
+    // A "both" lead counts as matching either the Web or WhatsApp filter
+    if (channelFilter !== "all" && lead.channel !== channelFilter && lead.channel !== "both") return false;
     if (statusFilter !== "all" && lead.status !== statusFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -531,17 +535,23 @@ export default function IncompleteLeads({ embedded = false }: { embedded?: boole
                         </div>
                       </td>
 
-                      {/* Channel Badge */}
+                      {/* Channel Badge — reflects the real platform(s) the candidate used */}
                       <td className="py-3 px-3">
-                        {lead.registrationId || String(lead.channel || "").toLowerCase() === "web" || !String(lead.channel || "").toLowerCase().includes("whatsapp") ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                        {lead.channel === "both" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-800 border border-violet-200">
                             <Globe size={11} />
-                            <span>Web</span>
+                            <Smartphone size={11} />
+                            <span>Web + WhatsApp</span>
                           </span>
-                        ) : (
+                        ) : lead.channel === "whatsapp" ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             <Smartphone size={11} />
                             <span>WhatsApp</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                            <Globe size={11} />
+                            <span>Web</span>
                           </span>
                         )}
                       </td>

@@ -974,18 +974,19 @@ const Admin = ({
     }
   };
 
-  const handleLogout = (reason?: string) => {
+  const handleLogout = (reason?: string | React.SyntheticEvent) => {
     localStorage.removeItem("msd_admin_token");
     localStorage.removeItem("msd_admin_last_activity");
     setToken(null);
     setMembers([]);
-    if (reason) {
-      setSessionTimeoutMsg(reason);
+    const reasonStr = typeof reason === "string" ? reason : undefined;
+    if (reasonStr) {
+      setSessionTimeoutMsg(reasonStr);
     }
     logActivity({
       channel: "ADMIN",
       component: "Auth",
-      action: reason ? `Admin Session Ended: ${reason}` : "Admin Logged Out",
+      action: reasonStr ? `Admin Session Ended: ${reasonStr}` : "Admin Logged Out",
       status: "PASS",
     });
   };
@@ -2078,7 +2079,7 @@ const Admin = ({
           {collapsed ? (
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => handleLogout()}
               title="Logout of Admin Portal"
               className="w-full flex items-center justify-center p-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
             >
@@ -2100,7 +2101,7 @@ const Admin = ({
               </div>
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => handleLogout()}
                 title="Sign Out"
                 className="p-2 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer shrink-0"
               >
@@ -2188,7 +2189,7 @@ const Admin = ({
                 </button>
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={() => handleLogout()}
                   className="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <LogOut size={13} />
@@ -2938,6 +2939,12 @@ const Admin = ({
                                     <img
                                       src={member.photoUrl}
                                       alt={member.fullName}
+                                      onError={(e) => {
+                                        if (!e.currentTarget.dataset.retried && member.photoUrl) {
+                                          e.currentTarget.dataset.retried = "1";
+                                          e.currentTarget.src = getApiUrl(`/api/members/proxy-photo?url=${encodeURIComponent(member.photoUrl)}`);
+                                        }
+                                      }}
                                       className="w-9 h-9 rounded-full object-cover border border-hairline shadow-2xs flex-shrink-0"
                                     />
                                   ) : (
@@ -3818,6 +3825,12 @@ const Admin = ({
                             <img
                               src={selectedMember.photoUrl}
                               alt={selectedMember.fullName}
+                              onError={(e) => {
+                                if (!e.currentTarget.dataset.retried && selectedMember.photoUrl) {
+                                  e.currentTarget.dataset.retried = "1";
+                                  e.currentTarget.src = getApiUrl(`/api/members/proxy-photo?url=${encodeURIComponent(selectedMember.photoUrl)}`);
+                                }
+                              }}
                               className="w-24 h-28 sm:w-28 sm:h-32 rounded-xl object-cover border-2 border-[#FF6200] shadow-sm bg-white transition-transform group-hover:scale-[1.02]"
                             />
                             <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white">

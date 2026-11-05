@@ -545,13 +545,12 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
         );
         const cleanLeads = (data.leads || [])
           .filter((l: any) => l.mobile !== "9871454424" && !/Deepu Kumar/i.test(l.fullName || ""))
-          .map((l: any) => ({
-            ...l,
-            channel:
-              l.registrationId || String(l.channel || "").toLowerCase() === "web" || !String(l.channel || "").toLowerCase().includes("whatsapp")
-                ? "web"
-                : "whatsapp",
-          }));
+          .map((l: any) => {
+            // Trust the backend's resolved channel (web | whatsapp | both)
+            const c = String(l.channel || "web").toLowerCase();
+            const channel = c.includes("both") ? "both" : c.includes("whatsapp") ? "whatsapp" : "web";
+            return { ...l, channel };
+          });
         setConversations(cleanConvs);
         setLeads(cleanLeads);
         setTemplates(data.templates || []);
@@ -738,7 +737,8 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
         return false;
       }
       if (leadCategoryTab !== "ALL" && l.leadCategory !== leadCategoryTab) return false;
-      if (leadChannelFilter !== "ALL" && l.channel !== leadChannelFilter) return false;
+      // A "both" lead counts as matching either the Web or WhatsApp filter
+      if (leadChannelFilter !== "ALL" && l.channel !== leadChannelFilter && l.channel !== "both") return false;
       if (leadSearch.trim()) {
         const q = leadSearch.toLowerCase();
         return (
@@ -3562,15 +3562,21 @@ const WhatsAppCrmManager: React.FC<WhatsAppCrmManagerProps> = ({
                         )}
                       </td>
                       <td className="py-2.5 px-3">
-                        {lead.registrationId || String(lead.channel || "").toLowerCase() === "web" || !String(lead.channel || "").toLowerCase().includes("whatsapp") ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                        {String(lead.channel || "").toLowerCase() === "both" ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-800 border border-violet-200">
                             <Globe size={11} />
-                            <span>Web</span>
+                            <Smartphone size={11} />
+                            <span>Web + WhatsApp</span>
                           </span>
-                        ) : (
+                        ) : String(lead.channel || "").toLowerCase().includes("whatsapp") ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             <Smartphone size={11} />
                             <span>WhatsApp</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                            <Globe size={11} />
+                            <span>Web</span>
                           </span>
                         )}
                       </td>

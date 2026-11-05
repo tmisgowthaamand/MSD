@@ -4,7 +4,7 @@ const https = require("https");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const TOKEN = process.env.WHATSAPP_TOKEN || process.env.META_ACCESS_TOKEN;
-const FLOW_ID = process.env.WHATSAPP_FLOW_ID || "1126482169890474";
+const FLOW_ID = process.env.WHATSAPP_FLOW_ID || "1130336959966710";
 
 const STATE_DISTRICTS = require("../data/indiaLocations.json");
 const INDIAN_STATES = Object.keys(STATE_DISTRICTS).sort((a, b) => a.localeCompare(b));
@@ -79,12 +79,13 @@ const msdFlowJson = {
                 "helper-text": "Parent or spouse full name",
               },
               {
-                type: "TextInput",
+                type: "DatePicker",
                 name: "dob",
-                label: "Date of Birth (DD/MM/YYYY)",
+                label: "Date of Birth",
                 required: true,
-                "input-type": "text",
-                "helper-text": "e.g. 15/08/1995",
+                "min-date": "1920-01-01",
+                "max-date": new Date().toISOString().slice(0, 10),
+                "helper-text": "Select your date of birth",
               },
               {
                 type: "Dropdown",
@@ -256,24 +257,53 @@ const msdFlowJson = {
                 name: "emergency_contact",
                 label: "Emergency / Secondary Contact",
                 required: true,
-                "input-type": "phone",
+                "input-type": "text",
                 "min-chars": 10,
                 "max-chars": 10,
-                "helper-text": "Must be exactly 10 digits",
+                "helper-text": "Exactly 10 digits",
+              },
+              {
+                type: "Dropdown",
+                name: "emergency_relation",
+                label: "Relationship with Member",
+                required: true,
+                "data-source": [
+                  { id: "Father", title: "Father" },
+                  { id: "Mother", title: "Mother" },
+                  { id: "Spouse", title: "Spouse" },
+                  { id: "Sibling", title: "Sibling" },
+                  { id: "Friend", title: "Friend" },
+                  { id: "Other", title: "Other" },
+                ],
+              },
+              {
+                type: "TextInput",
+                name: "assembly",
+                label: "Assembly Constituency",
+                required: false,
+                "input-type": "text",
+                "helper-text": "e.g. Teynampet",
+              },
+              {
+                type: "TextInput",
+                name: "zone",
+                label: "Zone / Region",
+                required: false,
+                "input-type": "text",
+                "helper-text": "e.g. Chennai Zone",
               },
               {
                 type: "Dropdown",
                 name: "assigned_wing",
-                label: "Assigned Seva Wing",
+                label: "Choose Primary MSD Wing",
                 required: true,
                 "data-source": [
-                  { id: "Seva Dal Volunteer Cadre", title: "Seva Dal Volunteer Cadre" },
-                  { id: "Youth Wing", title: "Youth Wing (Yuva Dal)" },
-                  { id: "Women Wing", title: "Women Wing (Mahila Dal)" },
-                  { id: "Healthcare & Medical Seva", title: "Healthcare & Medical Seva" },
+                  { id: "Legal Wing", title: "Legal Wing" },
+                  { id: "Medical & Health Wing", title: "Medical & Health Wing" },
                   { id: "Education & Child Welfare", title: "Education & Child Welfare" },
-                  { id: "Cultural & Heritage Wing", title: "Cultural & Heritage Wing" },
-                  { id: "Legal & Civic Rights Cell", title: "Legal & Civic Rights Cell" },
+                  { id: "Youth & Sports Wing", title: "Youth & Sports Wing" },
+                  { id: "Community Seva & Mahaprasadam", title: "Community Seva & Mahaprasadam" },
+                  { id: "General Seva Cadre", title: "General Seva Cadre" },
                 ],
               },
               {
@@ -312,6 +342,9 @@ const msdFlowJson = {
                     state: "${data.state}",
                     district: "${form.district}",
                     emergency_contact: "${form.emergency_contact}",
+                    emergency_relation: "${form.emergency_relation}",
+                    assembly: "${form.assembly}",
+                    zone: "${form.zone}",
                     assigned_wing: "${form.assigned_wing}",
                     address: "${form.address}",
                     pincode: "${form.pincode}",
@@ -336,6 +369,9 @@ const msdFlowJson = {
         state: { type: "string", __example__: "Tamil Nadu" },
         district: { type: "string", __example__: "Chennai" },
         emergency_contact: { type: "string", __example__: "9888888888" },
+        emergency_relation: { type: "string", __example__: "Father" },
+        assembly: { type: "string", __example__: "Teynampet" },
+        zone: { type: "string", __example__: "Chennai Zone" },
         assigned_wing: { type: "string", __example__: "Education & Child Welfare" },
         address: { type: "string", __example__: "56 Street, Chennai" },
         pincode: { type: "string", __example__: "600001" },
@@ -395,6 +431,9 @@ const msdFlowJson = {
                     state: "${data.state}",
                     district: "${data.district}",
                     emergency_contact: "${data.emergency_contact}",
+                    emergency_relation: "${data.emergency_relation}",
+                    assembly: "${data.assembly}",
+                    zone: "${data.zone}",
                     assigned_wing: "${data.assigned_wing}",
                     address: "${data.address}",
                     pincode: "${data.pincode}",
@@ -503,7 +542,7 @@ function publishFlow(flowId) {
     const pubRes = await publishFlow(FLOW_ID);
     console.log("Publish result:", pubRes);
 
-    console.log("\x1b[32m[PASS ✅] Flow 1126482169890474 updated and published successfully!\x1b[0m");
+    console.log(`\x1b[32m[PASS ✅] Flow ${FLOW_ID} updated and published successfully!\x1b[0m`);
   } catch (err) {
     console.error("Error during flow update:", err);
   }

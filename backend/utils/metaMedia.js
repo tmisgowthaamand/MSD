@@ -208,9 +208,64 @@ const sendMetaImageMessage = (toPhone, mediaId, caption = "") => {
   });
 };
 
+/**
+ * Sends a plain text message via Meta WhatsApp Cloud API
+ */
+const sendMetaWhatsAppMessage = (toPhone, messageText) => {
+  const token = process.env.WHATSAPP_TOKEN || process.env.META_ACCESS_TOKEN;
+  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.META_PHONE_NUMBER_ID;
+
+  if (!token || !phoneId) {
+    console.warn("[Meta WhatsApp Message] Missing token or phoneId");
+    return Promise.resolve({ success: false, reason: "CREDENTIALS_MISSING" });
+  }
+
+  let cleanPhone = String(toPhone).replace(/\D/g, "");
+  if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
+
+  const payload = JSON.stringify({
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: cleanPhone,
+    type: "text",
+    text: { preview_url: false, body: messageText },
+  });
+
+  return new Promise((resolve) => {
+    const options = {
+      hostname: "graph.facebook.com",
+      path: `/v21.0/${phoneId}/messages`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Length": Buffer.byteLength(payload),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve({ success: res.statusCode >= 200 && res.statusCode < 300, response: parsed });
+        } catch (e) {
+          resolve({ success: false, error: data });
+        }
+      });
+    });
+
+    req.on("error", (e) => resolve({ success: false, error: e.message }));
+    req.write(payload);
+    req.end();
+  });
+};
+
 module.exports = {
   fetchMetaMediaBuffer,
   uploadMetaMedia,
   sendMetaImageMessage,
+  sendMetaWhatsAppMessage,
 };
 

@@ -1970,6 +1970,47 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
     signatoryTitle: signatoryTitle || localStorage.getItem("msd_signatory_title") || "Central Executive Committee",
   });
 
+  // Preload and convert member photo to base64 Data URL or proxy URL to eliminate CORS blocks in preview & export
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!member.photoUrl) {
+      setPhotoDataUrl(null);
+      return;
+    }
+
+    if (member.photoUrl.startsWith("data:image")) {
+      setPhotoDataUrl(member.photoUrl);
+      return;
+    }
+
+    const loadPhoto = async () => {
+      try {
+        const proxyUrl = getApiUrl(`/api/members/proxy-photo?url=${encodeURIComponent(member.photoUrl!)}`);
+        const res = await fetch(proxyUrl);
+        if (res.ok) {
+          const blob = await res.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (active && reader.result) {
+              setPhotoDataUrl(reader.result as string);
+            }
+          };
+          reader.readAsDataURL(blob);
+          return;
+        }
+      } catch (e) {
+        // Fallback to direct URL
+      }
+    };
+
+    loadPhoto();
+    return () => {
+      active = false;
+    };
+  }, [member.photoUrl]);
+
   // Fetch settings from API on mount
   useEffect(() => {
     fetch(getApiUrl("/api/members/card-settings"))
@@ -2207,10 +2248,14 @@ export const DigitalIdCard: React.FC<DigitalIdCardProps> = ({
                     <div className="w-[78px] h-[94px] rounded-lg overflow-hidden border-2 border-[#FF6200] ring-2 ring-white/90 ring-inset bg-surface-soft shadow-xs flex items-center justify-center">
                       {member.photoUrl ? (
                         <img
-                          src={member.photoUrl}
+                          src={photoDataUrl || member.photoUrl}
                           alt={member.fullName}
-                          crossOrigin="anonymous"
                           onError={(e) => {
+                            if (!e.currentTarget.dataset.retried && member.photoUrl) {
+                              e.currentTarget.dataset.retried = "1";
+                              e.currentTarget.src = getApiUrl(`/api/members/proxy-photo?url=${encodeURIComponent(member.photoUrl)}`);
+                              return;
+                            }
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = "/founder-saragabani-gopu-portrait.jpg";
                           }}

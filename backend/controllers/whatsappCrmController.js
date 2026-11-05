@@ -3,6 +3,7 @@ const IncompleteLead = require("../models/IncompleteLead");
 const Member = require("../models/Member");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const { sendMetaWhatsAppMessage } = require("./whatsappController");
+const { resolveChannel } = require("../utils/channelResolver");
 
 // ─── Default Telecallers & Templates Seed Data ───────────────────────────────
 const DEFAULT_TELECALLERS = [
@@ -275,6 +276,20 @@ const getCrmOverview = async (req, res) => {
     const templates = inMemoryTemplates;
     const campaigns = inMemoryCampaigns;
 
+    // Set of mobiles that genuinely chatted on WhatsApp (conversation channel is
+    // whatsapp — a web-portal conversation thread does NOT count as a WA signal)
+    const waConvoSet = new Set(
+      conversations
+        .filter((c) => String(c.channel || "").toLowerCase().includes("whatsapp"))
+        .map((c) => String(c.mobile || "").replace(/\D/g, "").slice(-10))
+    );
+    // Original incomplete-lead channel by mobile (preserves WhatsApp origin for "both")
+    const leadChannelByMobile = new Map();
+    rawIncomplete.forEach((l) => {
+      const clean = String(l.mobile || "").replace(/\D/g, "").slice(-10);
+      if (clean) leadChannelByMobile.set(clean, l.channel);
+    });
+
     // Build deduplicated Unified Leads (Completed + Incomplete) (Req 2)
     const unifiedLeadsMap = new Map();
 
@@ -286,9 +301,12 @@ const getCrmOverview = async (req, res) => {
         ? telecallers[index % telecallers.length]
         : null;
 
-      // Completed cadre members registered via portal are 'web' unless explicitly from whatsapp_bot
-      const isWhatsAppBot = m.registrationSource === "whatsapp_bot" || m.channelSource === "whatsapp_bot";
-      const memberChannel = isWhatsAppBot ? "whatsapp" : "web";
+      // Resolve the true platform(s): registration source + any WhatsApp chat + original lead channel
+      const memberChannel = resolveChannel({
+        memberChannelSource: m.channelSource || m.registrationSource,
+        leadChannel: leadChannelByMobile.get(cleanPhone),
+        hasWhatsAppConvo: waConvoSet.has(cleanPhone),
+      });
 
       unifiedLeadsMap.set(cleanPhone, {
         id: m._id.toString(),
@@ -337,11 +355,10 @@ const getCrmOverview = async (req, res) => {
           ? telecallers[(index + 1) % telecallers.length]
           : null;
 
-      const isWhatsAppLead =
-        String(l.channel || "").toLowerCase() === "whatsapp" &&
-        !l.registrationId &&
-        !String(l.lastStepCompleted || "").startsWith("WEB_");
-      const leadChannel = isWhatsAppLead ? "whatsapp" : "web";
+      const leadChannel = resolveChannel({
+        leadChannel: l.channel,
+        hasWhatsAppConvo: waConvoSet.has(cleanPhone),
+      });
 
       unifiedLeadsMap.set(cleanPhone, {
         id: l._id.toString(),
@@ -370,7 +387,7 @@ const getCrmOverview = async (req, res) => {
     const unifiedLeads = Array.from(unifiedLeadsMap.values());
     const completedLeads = unifiedLeads.filter((l) => l.leadCategory === "COMPLETED");
     const incompleteLeads = unifiedLeads.filter((l) => l.leadCategory === "INCOMPLETE");
-    const whatsappLeadsCount = unifiedLeads.filter((l) => l.channel === "whatsapp").length;
+    const whatsappLeadsCount = unifiedLeads.filter((l) => l.channel === "whatsapp" || l.channel === "both").length;
     const assignedLeadsCount = unifiedLeads.filter((l) => l.assignedTelecaller?.id).length;
     const unassignedLeadsCount = unifiedLeads.length - assignedLeadsCount;
     const pendingConversationsCount = conversations.filter(

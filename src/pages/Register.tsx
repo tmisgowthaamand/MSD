@@ -2168,7 +2168,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
         {
 
-          label: "STATE & DISTRICT",
+          label: "DISTRICT & STATE",
 
           val: targetMember.district
 
@@ -4540,7 +4540,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
                         <span className="text-muted-editorial block text-[9.5px] uppercase font-bold tracking-wider">
 
-                          State & District
+                          District & State
 
                         </span>
 
@@ -7567,7 +7567,7 @@ const Register: React.FC<RegisterProps> = ({ defaultTab = "register" }) => {
 
                         <div>
 
-                          <span className="text-muted-editorial block">State & District</span>
+                          <span className="text-muted-editorial block">District & State</span>
 
                           <span className="font-medium text-ink">{statusResult.district}, {statusResult.state}</span>
 

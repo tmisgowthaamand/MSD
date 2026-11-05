@@ -4,6 +4,7 @@ const IncompleteLead = require("../models/IncompleteLead");
 const WhatsAppConversation = require("../models/WhatsAppConversation");
 const CardSetting = require("../models/CardSetting");
 const { generateCadreIdCards } = require("../utils/idCardGenerator");
+const { uploadMetaMedia, sendMetaImageMessage, sendMetaWhatsAppMessage } = require("../utils/metaMedia");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -597,6 +598,19 @@ const registerMember = async (req, res) => {
     if (!fs.existsSync(cardsDir)) fs.mkdirSync(cardsDir, { recursive: true });
 
     if (req.file) {
+      // Store the photo IN MongoDB as a base64 data URI so the dashboard shows it
+      // everywhere — independent of any file server / STORAGE_BASE_URL.
+      try {
+        const sharp = require("sharp");
+        const processed = await sharp(req.file.buffer)
+          .resize(400, 500, { fit: "cover", position: "center" })
+          .jpeg({ quality: 82 })
+          .toBuffer();
+        photoUrl = `data:image/jpeg;base64,${processed.toString("base64")}`;
+      } catch (imgErr) {
+        photoUrl = `data:image/jpeg;base64,${req.file.buffer.toString("base64")}`;
+      }
+      // Also cache to disk for the local card generator's disk fallback.
       try {
         fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), req.file.buffer);
       } catch (saveErr) {
@@ -668,23 +682,19 @@ const registerMember = async (req, res) => {
     // Mark incomplete lead as recovered in CRM
     try {
       const cleanPhone = String(saved.mobile || "").replace(/\D/g, "").slice(-10);
-      await IncompleteLead.findOneAndUpdate(
-        { mobile: cleanPhone },
-        {
-          $set: {
-            status: "RECOVERED",
-            channel: "web",
-            lastStepLabel: "Completed & Registered (Recovered via Web)",
-          },
-        }
-      );
+      // Registration complete -> remove from Incomplete Leads recovery CRM
+      // entirely. The candidate now lives in the Cadre Directory (Member list),
+      // so they must no longer appear as a drop-off lead.
+      await IncompleteLead.deleteMany({ mobile: cleanPhone });
       const WhatsAppConversation = require("../models/WhatsAppConversation");
+      // Reflect the member's ACTUAL status (web registrations are PENDING and
+      // await admin approval). Do NOT overwrite the conversation channel here —
+      // a WhatsApp-origin conversation must keep its channel for "both" detection.
       await WhatsAppConversation.findOneAndUpdate(
         { mobile: cleanPhone },
         {
           $set: {
-            channel: "web",
-            registrationStatus: "APPROVED",
+            registrationStatus: saved.status,
             customerName: saved.fullName,
           },
         }
@@ -1014,6 +1024,47 @@ const updateMemberStatus = async (req, res) => {
           },
           { upsert: true }
         );
+
+        // When Approved by Admin on Web -> Automatically dispatch Front & Back Digital ID Cards to candidate's WhatsApp
+        if (isApproved) {
+          try {
+            const toWaPhone = cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`;
+            console.log(`[Admin Approval] Dispatching Official Both-Sided Cadre ID Card to +${toWaPhone}...`);
+            const { combinedPngBuffer } = await generateCadreIdCards(updated);
+
+            if (combinedPngBuffer) {
+              const cardUp = await uploadMetaMedia(combinedPngBuffer, `${updated.registrationId}_card.png`, "image/png");
+              if (cardUp.success && cardUp.mediaId) {
+                await sendMetaImageMessage(
+                  toWaPhone,
+                  cardUp.mediaId,
+                  `🪪 *Official Cadre ID Card (National Cadre)*\n` +
+                  `*Name:* ${updated.fullName}\n` +
+                  `*ID:* \`${updated.registrationId}\`\n` +
+                  `*Wing:* ${updated.wing}\n` +
+                  `*Unit:* ${updated.state} / ${updated.district}\n\n` +
+                  `_Official dual-sided card. Download and save to your device._`
+                );
+              }
+            }
+          } catch (waErr) {
+            console.warn("[Admin Approval -> WhatsApp Dispatch Error]:", waErr.message);
+          }
+        } else if (updated.status === "REJECTED") {
+          try {
+            const toWaPhone = cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`;
+            const rejectNotice =
+              `❌ *Maha Seva Dal - Application Update*\n\n` +
+              `*Name:* ${updated.fullName}\n` +
+              `*Application ID:* \`${updated.registrationId}\`\n` +
+              `*Status:* 🔴 *REJECTED / ACTION REQUIRED*\n` +
+              `*Reason:* ${updated.adminNotes || "Details or photo did not meet requirements."}\n\n` +
+              `Please contact the Central Secretariat Helpline (+91 9994625690) or resubmit via mahasevadal.com.`;
+            await sendMetaWhatsAppMessage(toWaPhone, rejectNotice);
+          } catch (waErr) {
+            console.warn("[Admin Reject -> WhatsApp Error]:", waErr.message);
+          }
+        }
       }
     } catch (crmSyncErr) {
       console.warn("[Member Status -> WhatsApp Inbox Sync Warning]:", crmSyncErr.message);
@@ -1445,6 +1496,13 @@ function validatePhotoUrl(urlStr) {
 }
 
 const proxyPhoto = (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   const imageUrl = req.query.url;
   const validation = validatePhotoUrl(imageUrl);
   if (!validation.valid) {
@@ -1466,6 +1524,18 @@ const proxyPhoto = (req, res) => {
 
       if (upstreamRes.statusCode !== 200) {
         upstreamRes.resume();
+        const photoBasename = path.basename(validation.parsed.pathname || "");
+        const localCandidate = path.resolve(__dirname, `../uploads/photos/${photoBasename}`);
+        const publicCandidate = path.resolve(__dirname, `../../public/uploads/photos/${photoBasename}`);
+        if (photoBasename && fs.existsSync(localCandidate)) {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Content-Type", "image/jpeg");
+          return fs.createReadStream(localCandidate).pipe(res);
+        } else if (photoBasename && fs.existsSync(publicCandidate)) {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Content-Type", "image/jpeg");
+          return fs.createReadStream(publicCandidate).pipe(res);
+        }
         return res.status(upstreamRes.statusCode).json({ error: "Failed to load upstream photo" });
       }
 
@@ -1475,6 +1545,7 @@ const proxyPhoto = (req, res) => {
         return res.status(400).json({ error: "Upstream content is not an image" });
       }
 
+      res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Content-Type", contentType);
       res.setHeader("Cache-Control", "public, max-age=86400");
       res.setHeader("X-Content-Type-Options", "nosniff");
@@ -1634,9 +1705,21 @@ const resubmitMemberPhoto = async (req, res) => {
     if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
     if (!fs.existsSync(cardsDir)) fs.mkdirSync(cardsDir, { recursive: true });
 
-    // Save updated candidate photo directly to droplet disk
-    fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), file.buffer);
-    member.photoUrl = `${baseUrl}/uploads/photos/${safeRegId}_photo.jpg`;
+    // Store the re-submitted photo IN MongoDB as a base64 data URI (dashboard-visible
+    // everywhere); also cache to disk for the local card generator's disk fallback.
+    try {
+      const sharp = require("sharp");
+      const processed = await sharp(file.buffer)
+        .resize(400, 500, { fit: "cover", position: "center" })
+        .jpeg({ quality: 82 })
+        .toBuffer();
+      member.photoUrl = `data:image/jpeg;base64,${processed.toString("base64")}`;
+    } catch (imgErr) {
+      member.photoUrl = `data:image/jpeg;base64,${file.buffer.toString("base64")}`;
+    }
+    try {
+      fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), file.buffer);
+    } catch (diskErr) {}
     member.photoPublicId = `do_${safeRegId}`;
 
     // Regenerate combined both-sides ID card

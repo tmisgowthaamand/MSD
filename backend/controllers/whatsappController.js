@@ -236,7 +236,7 @@ const sendMetaInteractiveList = async (toPhone, isExistingMember = false, member
 const sendMetaFlowMessage = async (toPhone) => {
   const token = process.env.WHATSAPP_TOKEN || process.env.META_ACCESS_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.META_PHONE_NUMBER_ID;
-  const flowId = process.env.WHATSAPP_FLOW_ID || "1126482169890474";
+  const flowId = process.env.WHATSAPP_FLOW_ID || "1130336959966710";
 
   if (!token || !phoneId) {
     console.warn("\x1b[33m[Meta Flow] Missing token or phoneId.\x1b[0m");
@@ -393,11 +393,28 @@ const handleIncomingWebhook = async (req, res) => {
               const responseJson = JSON.parse(msg.interactive.nfm_reply.response_json || "{}");
               console.log("\x1b[32m[PASS ✅] Received Flow Completion Payload:\x1b[0m", responseJson);
 
-              const regId = `MSD-IND-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+              let regId = `MSD-IND-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
               // Sanitize emergency contact to strictly 10 digits
               let cleanEmergency = String(responseJson.emergency_contact || cleanPhone).replace(/\D/g, "");
               if (cleanEmergency.length > 10) cleanEmergency = cleanEmergency.slice(-10);
+
+              // Convert Flow DatePicker epoch-ms value to YYYY-MM-DD (matches web format); leave date strings as-is
+              let cleanDob = responseJson.dob || "";
+              if (/^\d{10,13}$/.test(String(cleanDob))) {
+                const dptDate = new Date(Number(cleanDob));
+                if (!isNaN(dptDate.getTime())) {
+                  cleanDob = `${dptDate.getFullYear()}-${String(dptDate.getMonth() + 1).padStart(2, "0")}-${String(
+                    dptDate.getDate()
+                  ).padStart(2, "0")}`;
+                }
+              }
+
+              // Validate relationship against allowed enum (falls back to "Other")
+              const allowedRelations = ["Father", "Mother", "Spouse", "Sibling", "Friend", "Other"];
+              const emergencyRelation = allowedRelations.includes(responseJson.emergency_relation)
+                ? responseJson.emergency_relation
+                : "Other";
 
               // Helper to map flow wing title to valid Member schema enum
               const mapToValidWing = (rawWing) => {
@@ -426,15 +443,14 @@ const handleIncomingWebhook = async (req, res) => {
                 pincode = pinMatch ? pinMatch[0] : "600001";
               }
 
-              const newMember = new Member({
+              const memberFields = {
                 fullName: responseJson.full_name || "Volunteer Cadre",
                 fatherName,
-                dob: responseJson.dob || "01/01/1995",
+                dob: cleanDob || "01/01/1995",
                 gender: ["Male", "Female", "Other"].includes(responseJson.gender) ? responseJson.gender : "Other",
                 bloodGroup: responseJson.blood_group || "O+",
-                mobile: cleanPhone,
                 emergencyNumber: cleanEmergency || cleanPhone,
-                emergencyRelation: "Other",
+                emergencyRelation,
                 state,
                 district,
                 assembly,
@@ -442,20 +458,61 @@ const handleIncomingWebhook = async (req, res) => {
                 wing: assignedWing,
                 address,
                 pincode,
-                registrationId: regId,
                 status: "APPROVED",
                 approvedAt: new Date(),
-              });
-              // Attempt to download candidate photo from WhatsApp CDN if provided
+                channelSource: "whatsapp",
+              };
+
+              // If this mobile already registered, UPDATE that record (keeping its
+              // existing Reg ID) so re-submitted details and the uploaded photo
+              // persist to the member — instead of a duplicate-key save failure that
+              // left the photo only on the generated card. Otherwise create new.
+              let newMember = await Member.findOne({ mobile: cleanPhone });
+              if (newMember) {
+                regId = newMember.registrationId || regId;
+                Object.assign(newMember, memberFields);
+              } else {
+                newMember = new Member({ ...memberFields, mobile: cleanPhone, registrationId: regId });
+              }
+              // Download candidate photo from Meta CDN if provided and save locally
               let candidatePhotoBuffer = null;
               try {
-                const photoHandles = responseJson.photo;
-                const mediaHandle = Array.isArray(photoHandles) ? photoHandles[0] : photoHandles;
-                if (mediaHandle && typeof mediaHandle === "string" && mediaHandle.trim()) {
-                  console.log(`[Flow] Fetching candidate photo from Meta CDN: ${mediaHandle}...`);
-                  candidatePhotoBuffer = await fetchMetaMediaBuffer(mediaHandle);
+                let candidateMediaId = null;
+                if (responseJson.photo) {
+                  const photoItem = Array.isArray(responseJson.photo) ? responseJson.photo[0] : responseJson.photo;
+                  if (photoItem) {
+                    candidateMediaId =
+                      typeof photoItem === "object" && photoItem !== null
+                        ? photoItem.id || photoItem.file_id
+                        : String(photoItem).trim();
+                  }
+                }
+
+                if (candidateMediaId) {
+                  console.log(`[Flow] Fetching candidate photo from Meta CDN: ${candidateMediaId}...`);
+                  candidatePhotoBuffer = await fetchMetaMediaBuffer(candidateMediaId);
                   if (candidatePhotoBuffer) {
-                    newMember.photoUrl = `data:image/jpeg;base64,${candidatePhotoBuffer.toString("base64")}`;
+                    const safeRegId = regId.replace(/[^a-zA-Z0-9_-]/g, "");
+                    // Store the photo IN MongoDB as a base64 data URI so the dashboard
+                    // shows it everywhere — independent of any file server / STORAGE_BASE_URL.
+                    // Compress to passport size first to keep the document small.
+                    try {
+                      const sharp = require("sharp");
+                      const processed = await sharp(candidatePhotoBuffer)
+                        .resize(400, 500, { fit: "cover", position: "center" })
+                        .jpeg({ quality: 82 })
+                        .toBuffer();
+                      newMember.photoUrl = `data:image/jpeg;base64,${processed.toString("base64")}`;
+                    } catch (imgErr) {
+                      newMember.photoUrl = `data:image/jpeg;base64,${candidatePhotoBuffer.toString("base64")}`;
+                    }
+                    // Also cache to disk for the local card generator's disk fallback.
+                    try {
+                      const photosDir = path.resolve(__dirname, "../uploads/photos");
+                      if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
+                      fs.writeFileSync(path.join(photosDir, `${safeRegId}_photo.jpg`), candidatePhotoBuffer);
+                    } catch (diskErr) {}
+                    console.log(`[Flow] Candidate photo stored in MongoDB as data URI (${newMember.photoUrl.length} chars)`);
                   }
                 }
               } catch (photoFetchErr) {
@@ -472,11 +529,36 @@ const handleIncomingWebhook = async (req, res) => {
                 `*Assigned Wing:* ${newMember.wing}\n` +
                 `*Unit:* ${newMember.state} / ${newMember.district}\n` +
                 `*PIN Code:* ${newMember.pincode}\n\n` +
-                `Your official Cadre Membership has been approved! Your Digital Cadre ID Card (Front & Back) is attached below.\n\n` +
+                `Your official Cadre Membership has been approved! Your Digital Cadre ID Card (Front & Back) is attached below for download.\n\n` +
                 `Reply *1* or *Hi* anytime to view your Digital ID Card.\n\n` +
                 `_Vande Mataram · Unity of People_`;
 
               await sendMetaWhatsAppMessage(from, confirmMsg);
+
+              // Instantly generate and dispatch Official Combined Both-Sided Digital ID Card directly in WhatsApp chat
+              try {
+                console.log(`[Flow] Generating Official Both-Sided Cadre ID Card for ${newMember.fullName}...`);
+                const { combinedPngBuffer } = await generateCadreIdCards(newMember, candidatePhotoBuffer);
+
+                // Dispatch Single Combined Card (Front & Back Side-by-Side)
+                const cardUpload = await uploadMetaMedia(combinedPngBuffer, `${regId}_card.png`, "image/png");
+                if (cardUpload.success && cardUpload.mediaId) {
+                  await sendMetaImageMessage(
+                    from,
+                    cardUpload.mediaId,
+                    `🪪 *Official Cadre ID Card (National Cadre)*\n` +
+                    `*Name:* ${newMember.fullName}\n` +
+                    `*ID:* \`${regId}\`\n` +
+                    `*Wing:* ${newMember.wing}\n` +
+                    `*Unit:* ${newMember.state} / ${newMember.district}\n\n` +
+                    `_Official dual-sided card. Download and save to your device._`
+                  );
+                } else {
+                  console.warn("[Flow] Combined card upload to Meta failed:", cardUpload);
+                }
+              } catch (cardErr) {
+                console.error("[Flow] Cadre ID Card Generation/Dispatch Error:", cardErr);
+              }
 
               // Sync completed Meta Flow + Digital ID Card into WhatsApp CRM Inbox
               try {
@@ -521,23 +603,6 @@ const handleIncomingWebhook = async (req, res) => {
                             content: confirmMsg,
                             stepName: "Official Digital ID Card Dispatched",
                             channelSource: "whatsapp",
-                            cardData: {
-                              registrationId: regId,
-                              fullName: newMember.fullName,
-                              fatherName: newMember.fatherName,
-                              dob: newMember.dob,
-                              gender: newMember.gender,
-                              mobile: clean10,
-                              bloodGroup: newMember.bloodGroup,
-                              wing: newMember.wing,
-                              state: newMember.state,
-                              district: newMember.district,
-                              address: newMember.address,
-                              pincode: newMember.pincode,
-                              photoUrl: newMember.photoUrl || "/founder-saragabani-gopu-portrait.jpg",
-                              status: "APPROVED",
-                              action: "GENERATED",
-                            },
                             status: "DELIVERED",
                             senderName: "MSD WhatsApp Bot",
                             timestamp: new Date(Date.now() + 200),
@@ -556,49 +621,11 @@ const handleIncomingWebhook = async (req, res) => {
                 );
               } catch (crmErr) {}
 
-              // Instantly generate and dispatch Front & Back Digital ID Cards into WhatsApp chat
+              // Registration complete -> remove from Incomplete Leads recovery CRM
+              // entirely. The candidate now lives in the Cadre Directory (Member list),
+              // so they must no longer appear as a drop-off lead.
               try {
-                console.log(`[Flow] Generating Official Cadre ID Cards for ${newMember.fullName}...`);
-                const { frontPngBuffer, backPngBuffer } = await generateCadreIdCards(newMember, candidatePhotoBuffer);
-
-                // Dispatch Front ID Card
-                const frontUpload = await uploadMetaMedia(frontPngBuffer, `${regId}_front.png`, "image/png");
-                if (frontUpload.success && frontUpload.mediaId) {
-                  await sendMetaImageMessage(
-                    from,
-                    frontUpload.mediaId,
-                    `🪪 *Official Cadre ID Card (FRONT)*\n*Name:* ${newMember.fullName}\n*ID:* \`${regId}\``
-                  );
-                } else {
-                  console.warn("[Flow] Front card upload to Meta failed:", frontUpload);
-                }
-
-                // Dispatch Back ID Card
-                const backUpload = await uploadMetaMedia(backPngBuffer, `${regId}_back.png`, "image/png");
-                if (backUpload.success && backUpload.mediaId) {
-                  await sendMetaImageMessage(
-                    from,
-                    backUpload.mediaId,
-                    `🪪 *Official Cadre ID Card (BACK)*\n*Terms & 1947 Cadre Oath*`
-                  );
-                } else {
-                  console.warn("[Flow] Back card upload to Meta failed:", backUpload);
-                }
-              } catch (cardErr) {
-                console.error("[Flow] Cadre ID Card Generation/Dispatch Error:", cardErr);
-              }
-
-              // Mark lead as RECOVERED in Incomplete Leads recovery CRM
-              try {
-                await IncompleteLead.findOneAndUpdate(
-                  { mobile: cleanPhone },
-                  {
-                    $set: {
-                      status: "RECOVERED",
-                      lastStepLabel: "Completed & Approved (Recovered)",
-                    },
-                  }
-                );
+                await IncompleteLead.deleteMany({ mobile: cleanPhone });
               } catch (recErr) {}
 
               continue;
@@ -724,6 +751,33 @@ const handleIncomingWebhook = async (req, res) => {
               const stateName = existingMember.state || existingMember.stateUnit || "Tamil Nadu";
               const districtName = existingMember.district || existingMember.districtUnit || "Chennai";
 
+              if (existingMember.status === "PENDING") {
+                const pendingNotice =
+                  `⏳ *Application Under Review*\n\n` +
+                  `*Cadre Name:* ${existingMember.fullName}\n` +
+                  `*Application ID:* \`${existingMember.registrationId}\`\n` +
+                  `*Assigned Wing:* ${wingName}\n` +
+                  `*Unit:* ${stateName} / ${districtName}\n` +
+                  `*Current Status:* 🟡 *PENDING VERIFICATION*\n\n` +
+                  `Your cadre registration is currently being verified by the Central Secretariat.\n\n` +
+                  `Your official Digital Cadre ID Card will become available as soon as your application is approved on the national portal.\n\n` +
+                  `_Vande Mataram · Unity of People_`;
+                await sendMetaWhatsAppMessage(from, pendingNotice);
+                continue;
+              }
+
+              if (existingMember.status === "REJECTED") {
+                const rejectNotice =
+                  `❌ *Application Status: Action Required*\n\n` +
+                  `*Cadre Name:* ${existingMember.fullName}\n` +
+                  `*Application ID:* \`${existingMember.registrationId}\`\n` +
+                  `*Status:* 🔴 *REJECTED / CORRECTION NEEDED*\n` +
+                  `*Reason / Remarks:* ${existingMember.adminNotes || "Details or photo did not meet requirements."}\n\n` +
+                  `Please contact Central Secretariat Helpline (+91 9994625690) or resubmit via mahasevadal.com.`;
+                await sendMetaWhatsAppMessage(from, rejectNotice);
+                continue;
+              }
+
               const cardMsg =
                 `🪪 *Maha Seva Dal - Official Cadre ID*\n\n` +
                 `*Cadre Name:* ${existingMember.fullName}\n` +
@@ -735,7 +789,7 @@ const handleIncomingWebhook = async (req, res) => {
                 `_Type "Hi" to return to the main menu._`;
               await sendMetaWhatsAppMessage(from, cardMsg);
 
-              // Generate and dispatch Front & Back Card images
+              // Generate and dispatch Official Combined Both-Sided Digital ID Card image
               try {
                 let memberPhotoBuf = null;
                 if (existingMember.photoUrl && existingMember.photoUrl.startsWith("data:image")) {
@@ -745,24 +799,22 @@ const handleIncomingWebhook = async (req, res) => {
                   } catch (e) {}
                 }
 
-                const { frontPngBuffer, backPngBuffer } = await generateCadreIdCards(existingMember, memberPhotoBuf);
+                const { combinedPngBuffer } = await generateCadreIdCards(existingMember, memberPhotoBuf);
 
-                const frontUpload = await uploadMetaMedia(frontPngBuffer, `${existingMember.registrationId}_front.png`, "image/png");
-                if (frontUpload.success && frontUpload.mediaId) {
+                const cardUpload = await uploadMetaMedia(combinedPngBuffer, `${existingMember.registrationId}_card.png`, "image/png");
+                if (cardUpload.success && cardUpload.mediaId) {
                   await sendMetaImageMessage(
                     from,
-                    frontUpload.mediaId,
-                    `🪪 *Official Cadre ID Card (FRONT)*\n*Name:* ${existingMember.fullName}\n*ID:* \`${existingMember.registrationId}\``
+                    cardUpload.mediaId,
+                    `🪪 *Official Cadre ID Card (National Cadre)*\n` +
+                    `*Name:* ${existingMember.fullName}\n` +
+                    `*ID:* \`${existingMember.registrationId}\`\n` +
+                    `*Wing:* ${wingName}\n` +
+                    `*Unit:* ${stateName} / ${districtName}\n\n` +
+                    `_Official dual-sided card. Download and save to your device._`
                   );
-                }
-
-                const backUpload = await uploadMetaMedia(backPngBuffer, `${existingMember.registrationId}_back.png`, "image/png");
-                if (backUpload.success && backUpload.mediaId) {
-                  await sendMetaImageMessage(
-                    from,
-                    backUpload.mediaId,
-                    `🪪 *Official Cadre ID Card (BACK)*\n*Terms & 1947 Cadre Oath*`
-                  );
+                } else {
+                  console.warn("[Card Query] Combined card upload to Meta failed:", cardUpload);
                 }
               } catch (cardErr) {
                 console.error("[Card Query Image Dispatch Error]:", cardErr);

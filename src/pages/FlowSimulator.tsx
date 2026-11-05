@@ -652,7 +652,7 @@ const FlowIdCardBubble: React.FC<FlowIdCardBubbleProps> = ({
         triggerDownload(backUrl, `${cleanRegId}_Back.png`);
       }
 
-      // ID Card Download simulated locally in Flow Simulator
+      const downloadLabel = target.toUpperCase();
       console.log(`[Flow Simulator] ID Card Downloaded locally: ${downloadLabel}`);
     } catch (err: any) {
       console.error("ID Card download failed:", err);
@@ -914,7 +914,7 @@ export default function FlowSimulator({ embedded = false }: { embedded?: boolean
   const [addressDrawerOpen, setAddressDrawerOpen] = useState(false);
   const [sameAsMobile, setSameAsMobile] = useState(true);
   const [candidatePhoto, setCandidatePhoto] = useState<string>(
-    "/founder-saragabani-gopu-portrait.jpg"
+    "/uploads/photos/MSD-IND-2026-6790_photo.jpg"
   );
 
   // Active Card Data for actual web DigitalIdCard display
@@ -968,25 +968,25 @@ export default function FlowSimulator({ embedded = false }: { embedded?: boolean
     (persona === "approved_cadre"
       ? approvedJaysuryaMember
       : {
-          registrationId: "MSD-IND-2026-4152",
-          fullName: candidateData.fullName || "Deepu Kumar",
-          fatherName: candidateData.fatherName || "Sagik P",
-          dob: candidateData.dob || "1999-06-12",
-          age: candidateData.age || calcAge(candidateData.dob || "1999-06-12") || 27,
+          registrationId: "MSD-IND-2026-6790",
+          fullName: candidateData.fullName || "Nirmal",
+          fatherName: candidateData.fatherName || "Dinesh",
+          dob: candidateData.dob || "1998-09-12",
+          age: candidateData.age || calcAge(candidateData.dob || "1998-09-12") || 28,
           gender: candidateData.gender || "Male",
-          mobile: format10DigitMobile(candidateData.mobile || "9871454424"),
-          whatsapp: format10DigitMobile(candidateData.whatsapp || candidateData.mobile || "9871454424"),
-          emergencyNumber: format10DigitMobile(candidateData.emergencyNumber || "8975511221"),
-          emergencyRelation: "",
-          email: candidateData.email || "kumardeepu0505@gmail.com",
-          bloodGroup: candidateData.bloodGroup || "AB+",
-          wing: candidateData.wing || "Legal Wing",
-          profession: candidateData.profession || "Advocate",
-          district: candidateData.district || "Viluppuram District",
-          pincode: candidateData.pincode || "605002",
+          mobile: format10DigitMobile(candidateData.mobile || "8903162114"),
+          whatsapp: format10DigitMobile(candidateData.whatsapp || candidateData.mobile || "8903162114"),
+          emergencyNumber: format10DigitMobile(candidateData.emergencyNumber || "8979466464"),
+          emergencyRelation: "Other",
+          email: candidateData.email || "nirmal@gmail.com",
+          bloodGroup: candidateData.bloodGroup || "O+",
+          wing: candidateData.wing || "Education & Child Welfare",
+          profession: candidateData.profession || "Volunteer",
+          district: candidateData.district || "Ariyalur",
+          pincode: candidateData.pincode || "600026",
           state: candidateData.state || "Tamil Nadu",
-          taluk: candidateData.taluk || "Viluppuram",
-          address: candidateData.address || "Door No. 14, Gandhi Salai, Viluppuram",
+          taluk: candidateData.taluk || "Ariyalur",
+          address: candidateData.address || "No:19, Anjeneyar Kovil street, Ariyalur",
           status: "APPROVED",
           approvedAt: new Date().toISOString(),
           photoUrl: candidatePhoto,
@@ -1504,24 +1504,24 @@ export default function FlowSimulator({ embedded = false }: { embedded?: boolean
       const newRegId = `MSD-IND-2026-${String(Math.floor(Math.random() * 8999 + 1000)).padStart(4, "0")}`;
       const memberObj = {
         registrationId: newRegId,
-        fullName: candidateData.fullName || "Deepu Kumar",
-        fatherName: candidateData.fatherName || "Sagik P",
-        dob: candidateData.dob || "1999-06-12",
-        age: candidateData.age || calcAge(candidateData.dob || "1999-06-12") || 27,
+        fullName: candidateData.fullName || "Nirmal",
+        fatherName: candidateData.fatherName || "Dinesh",
+        dob: candidateData.dob || "1998-09-12",
+        age: candidateData.age || calcAge(candidateData.dob || "1998-09-12") || 28,
         gender: candidateData.gender || "Male",
-        mobile: format10DigitMobile(candidateData.mobile || "9871454424"),
-        whatsapp: format10DigitMobile(candidateData.whatsapp || candidateData.mobile || "9871454424"),
-        emergencyNumber: format10DigitMobile(candidateData.emergencyNumber || "8975511221"),
-        emergencyRelation: "",
-        email: candidateData.email || "kumardeepu0505@gmail.com",
-        bloodGroup: candidateData.bloodGroup || "AB+",
-        wing: candidateData.wing || "Legal Wing",
-        profession: candidateData.profession || "Advocate",
-        district: candidateData.district || "Viluppuram District",
-        pincode: candidateData.pincode || "605002",
+        mobile: format10DigitMobile(candidateData.mobile || "8903162114"),
+        whatsapp: format10DigitMobile(candidateData.whatsapp || candidateData.mobile || "8903162114"),
+        emergencyNumber: format10DigitMobile(candidateData.emergencyNumber || "8979466464"),
+        emergencyRelation: "Other",
+        email: candidateData.email || "nirmal@gmail.com",
+        bloodGroup: candidateData.bloodGroup || "O+",
+        wing: candidateData.wing || "Education & Child Welfare",
+        profession: candidateData.profession || "Volunteer",
+        district: candidateData.district || "Ariyalur",
+        pincode: candidateData.pincode || "600026",
         state: candidateData.state || "Tamil Nadu",
-        taluk: candidateData.taluk || "Viluppuram",
-        address: candidateData.address || "Door No. 14, Gandhi Salai, Viluppuram",
+        taluk: candidateData.taluk || "Ariyalur",
+        address: candidateData.address || "No:19, Anjeneyar Kovil street, Ariyalur",
         status: "APPROVED",
         approvedAt: new Date().toISOString(),
         photoUrl: activePhoto,

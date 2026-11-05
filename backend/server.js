@@ -159,7 +159,16 @@ app.post("/api/logs/activity", (req, res) => {
 });
 
 // ─── Static Uploads (Photos & ID Cards on https://mahasevadal.com) ───
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    if (req.method === "OPTIONS") return res.status(200).end();
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"))
+);
 
 // ─── Routes ──────────────────────────────────────────────────
 app.use("/api/upload", uploadRoutes);
