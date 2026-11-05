@@ -6,6 +6,7 @@ const WhatsAppConversation = require("../models/WhatsAppConversation");
 const { getDistrictDataSource } = require("./whatsappFlowEndpoint");
 const { generateCadreIdCards } = require("../utils/idCardGenerator");
 const { fetchMetaMediaBuffer, downloadFlowMediaBuffer, uploadMetaMedia, sendMetaImageMessage } = require("../utils/metaMedia");
+const { generateDonationQrCard } = require("../utils/donationQrGenerator");
 
 /**
  * Helper to dispatch an outbound text message via Meta WhatsApp Cloud API
@@ -900,16 +901,23 @@ const handleIncomingWebhook = async (req, res) => {
               `*Scan the QR above with any UPI app to pay.*\n\n` +
               `After payment, please send your *12-digit UTR / Transaction Reference Number* here to receive your official 80G tax-exempt receipt!\n\n` +
               `_Example: UTR 429188291045_`;
-            // Send the official UPI QR image with the donation details as caption
+            // Send the official donation UPI QR card image (matches the Flow Simulator)
+            // with the donation details as caption.
             let donateQrSent = false;
             try {
-              const qrPath = path.resolve(__dirname, "../../public/donation-qr.png");
-              if (fs.existsSync(qrPath)) {
-                const qrBuf = fs.readFileSync(qrPath);
+              let qrBuf = await generateDonationQrCard();
+              // Fallback to the static official QR image if generation fails
+              if (!qrBuf) {
+                const qrPath = path.resolve(__dirname, "../../public/donation-qr.png");
+                if (fs.existsSync(qrPath)) qrBuf = fs.readFileSync(qrPath);
+              }
+              if (qrBuf) {
                 const qrUpload = await uploadMetaMedia(qrBuf, "donation-qr.png", "image/png");
                 if (qrUpload.success && qrUpload.mediaId) {
                   await sendMetaImageMessage(from, qrUpload.mediaId, donateMsg);
                   donateQrSent = true;
+                } else {
+                  console.warn("[Donate] QR image upload to Meta failed:", qrUpload);
                 }
               }
             } catch (qrErr) {
